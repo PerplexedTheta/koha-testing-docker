@@ -89,7 +89,6 @@ RUN apt-get -y update \
          libppi-perl \
          libnet-z3950-simpleserver-perl \
          libnet-netmask-perl \
-         libarray-utils-perl \
          libcache-memcached-fast-safe-perl \
          perl-modules-5.28 \
          libemail-messageid-perl \

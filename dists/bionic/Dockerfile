@@ -85,7 +85,6 @@ RUN apt-get -y update \
          libppi-perl \
          libnet-z3950-simpleserver-perl \
          libnet-netmask-perl \
-         libarray-utils-perl \
          libcache-memcached-fast-safe-perl \
          libcpan-meta-perl \
          libemail-messageid-perl \
