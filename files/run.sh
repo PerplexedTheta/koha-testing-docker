@@ -221,6 +221,9 @@ echo "127.0.0.1    ${KOHA_OPAC_FQDN} ${KOHA_INTRANET_FQDN}" >> /etc/hosts
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/instance_bashrc > /var/lib/koha/${KOHA_INSTANCE}/.bashrc
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bash_aliases    > /var/lib/koha/${KOHA_INSTANCE}/.bash_aliases
 
+cd /kohadevbox/koha
+git config --global --add safe.directory /kohadevbox/koha
+
 if [ "${DEBUG_GIT_REPO_QATESTTOOLS}" = "yes" ]; then
     rm -rf ${BUILD_DIR}/qa-test-tools
     git clone -b ${DEBUG_GIT_REPO_QATESTTOOLS_BRANCH} ${DEBUG_GIT_REPO_QATESTTOOLS_URL} ${BUILD_DIR}/qa-test-tools
