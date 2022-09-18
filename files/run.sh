@@ -223,6 +223,20 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                     t/SuggestionEngine_AuthorityFile.t \
                                     t/Koha_SearchEngine_Elasticsearch_Browse.t \
                                   && touch testing.success"
+
+    elif [ "$LIGHT_TEST_SUITE" = "3" ]; then # test elastic-search only
+        koha-shell ${KOHA_INSTANCE} -p -c "
+                                  JUNIT_OUTPUT_FILE=junit_main.xml \
+                                  KOHA_TESTING=1 \
+                                  KOHA_NO_TABLE_LOCKS=1 \
+                                  KOHA_INTRANET_URL=http://koha:8081 \
+                                  KOHA_OPAC_URL=http://koha:8080 \
+                                  KOHA_USER=${KOHA_USER} \
+                                  KOHA_PASS=${KOHA_PASS} \
+                                  TEST_QA=1 \
+                                  prove -v --timer --harness=TAP::Harness::JUnit -r \
+                                    t/db_dependent/selenium \
+                                  && touch testing.success"
     else
         koha-shell ${KOHA_INSTANCE} -p -c "JUNIT_OUTPUT_FILE=junit_main.xml \
                                   KOHA_TESTING=1 \
