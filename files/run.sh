@@ -13,37 +13,8 @@ export KOHA_OPAC_URL=http://${KOHA_OPAC_FQDN}:${KOHA_OPAC_PORT}
 
 # Set a fixed hostname
 echo "kohadevbox" > /etc/hostname
-
-append_if_absent()
-{
-    local string=$1
-    local file=$2
-
-    if grep -q -x -v "$string" $file; then
-        echo $string >> $file
-    fi
-}
-
-append_if_absent "127.0.0.1 kohadevbox" /etc/hosts
+echo "127.0.0.1 kohadevbox" >> /etc/hosts
 hostname kohadevbox
-
-
-# Remove packages for developers if it's a Jenkins run (CI_RUN=1)
-if [ "${CI_RUN}" = "yes" ]; then
-    apt-get -y remove \
-      libcarp-always-perl \
-      libgit-repository-perl \
-      libmemcached-tools \
-      libperl-critic-perl \
-      libtest-perl-critic-perl \
-      libtest-perl-critic-progressive-perl \
-      libfile-chdir-perl \
-      libdata-printer-perl \
-      pmtools
-fi
-
-# debug failing apache --restart
-sudo service --status-all
 
 # Clone before calling cp_debian_files.pl
 if [ "${DEBUG_GIT_REPO_MISC4DEV}" = "yes" ]; then
@@ -75,9 +46,9 @@ echo "user     = koha_${KOHA_INSTANCE}" >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 echo "password = ${KOHA_DB_PASSWORD}"   >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 
 # Get rid of Apache warnings
-append_if_absent "ServerName kohadevbox"        /etc/apache2/apache2.conf
-append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
-append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
+echo "ServerName kohadevdock"       >> /etc/apache2/apache2.conf
+echo "Listen ${KOHA_INTRANET_PORT}" >> /etc/apache2/ports.conf
+echo "Listen ${KOHA_OPAC_PORT}"     >> /etc/apache2/ports.conf
 
 # Pull the names of the environment variables to substitute from defaults.env and convert them to a string of the format "$VAR1:$VAR2:$VAR3", etc.
 VARS_TO_SUB=`cut -d '=' -f1 ${BUILD_DIR}/templates/defaults.env  | tr '\n' ':' | sed -e 's/:/:$/g' | awk '{print "$"$1}' | sed -e 's/:\$$//'`
@@ -102,7 +73,7 @@ chmod +x ${BUILD_DIR}/bin/*
 koha-create --request-db ${KOHA_INSTANCE} --memcached-servers memcached:11211
 # Fix UID
 if [ ${LOCAL_USER_ID} ]; then
-    usermod -o -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
+    usermod -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
     # Fix permissions due to UID change
     chown -R "${KOHA_INSTANCE}-koha" "/var/cache/koha/${KOHA_INSTANCE}"
     chown -R "${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}"
@@ -166,11 +137,6 @@ if [ ${CPAN} ]; then
     cpan-outdated --exclude-core -p | cpanm
 fi
 
-# Install everything in Koha's cpanfile, may include libs for extra patches being tested
-if [ "${INSTALL_MISSING_FROM_CPANFILE}" = "yes" ]; then
-    cpanm --skip-installed --installdeps ${BUILD_DIR}/koha/
-fi
-
 # Stop apache2
 service apache2 stop
 
@@ -183,7 +149,7 @@ service koha-common start
 
 # Start apache and rabbitmq-server
 service apache2 start
-service rabbitmq-server start || true # Don't crash if rabbitmq-server didn't start
+service rabbitmq-server start
 
 # if KOHA_PROVE_CPUS is not set, then use nproc
 if [ -z ${KOHA_PROVE_CPUS} ]; then
@@ -214,7 +180,6 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                   && touch testing.success; \
                                   mkdir cover_db; cp -r /cover_db/* cover_db;
                                   cover -report clover"
-
     elif [ "$LIGHT_TEST_SUITE" = "1" ]; then
         koha-shell ${KOHA_INSTANCE} -p -c "find t xt -name '*.t' \
                                     -not -path \"t/db_dependent/www/*\" \
@@ -233,9 +198,8 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                   xargs prove -j ${KOHA_PROVE_CPUS} \
                                   --rules='par=t/db_dependent/00-strict.t' \
                                   --rules='seq=t/db_dependent/**.t' --rules='par=**' \
-                                  --timer --harness=TAP::Harness::JUnit -r -s \
+                                  --timer --harness=TAP::Harness::JUnit -s \
                                   && touch testing.success"
-
     elif [ "$LIGHT_TEST_SUITE" = "2" ]; then # test elastic-search only
         koha-shell ${KOHA_INSTANCE} -p -c "
                                   JUNIT_OUTPUT_FILE=junit_main.xml \
@@ -250,7 +214,6 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                     t/Koha/Config.t \
                                     t/Koha/SearchEngine \
                                     t/db_dependent/Biblio.t \
-                                    t/db_dependent/Search.t \
                                     t/db_dependent/Koha/Authorities.t \
                                     t/db_dependent/Koha/Z3950Responder/GenericSession.t \
                                     t/db_dependent/Koha/SearchEngine \
@@ -261,17 +224,7 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                     t/Koha_SearchEngine_Elasticsearch_Browse.t \
                                   && touch testing.success"
     else
-        koha-mysql ${KOHA_INSTANCE} -e "DROP DATABASE koha_${KOHA_INSTANCE};"
-        mysql -h db -u koha_${KOHA_INSTANCE} -ppassword -e"CREATE DATABASE koha_${KOHA_INSTANCE};"
-
-        # restart_all
-        echo flush_all > /dev/tcp/memcached/11211
-
-        sudo service apache2 restart
-        sudo service koha-common restart
-
-        koha-shell ${KOHA_INSTANCE} -p -c "
-                                  JUNIT_OUTPUT_FILE=junit_main.xml \
+        koha-shell ${KOHA_INSTANCE} -p -c "JUNIT_OUTPUT_FILE=junit_main.xml \
                                   KOHA_TESTING=1 \
                                   KOHA_NO_TABLE_LOCKS=1 \
                                   KOHA_INTRANET_URL=http://koha:8081 \
@@ -281,54 +234,11 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
                                   SELENIUM_ADDR=selenium \
                                   SELENIUM_PORT=4444 \
                                   TEST_QA=1 \
-                                  prove -v t/db_dependent/selenium/00-onboarding.t"
-
-        koha-mysql ${KOHA_INSTANCE} -e "DROP DATABASE koha_${KOHA_INSTANCE};"
-        mysql -h db -u koha_${KOHA_INSTANCE} -ppassword -e"CREATE DATABASE koha_${KOHA_INSTANCE};"
-
-        # restart_all
-        echo flush_all > /dev/tcp/memcached/11211
-        sudo service apache2 restart
-        sudo service koha-common restart
-
-
-        if [ "$LIGHT_TEST_SUITE" = "3" ]; then # selenium tests only
-            koha-shell ${KOHA_INSTANCE} -p -c "find t/db_dependent/selenium -name '*.t' \
-                                    -not -name '00-onboarding.t' | sort  \
-                                |
-                                  JUNIT_OUTPUT_FILE=junit_main.xml \
-                                  KOHA_TESTING=1 \
-                                  KOHA_NO_TABLE_LOCKS=1 \
-                                  KOHA_INTRANET_URL=http://koha:8081 \
-                                  KOHA_OPAC_URL=http://koha:8080 \
-                                  KOHA_USER=${KOHA_USER} \
-                                  KOHA_PASS=${KOHA_PASS} \
-                                  SELENIUM_ADDR=selenium \
-                                  SELENIUM_PORT=4444 \
-                                  TEST_QA=1 \
-                                  xargs prove --timer --harness=TAP::Harness::JUnit -r -v \
-                                  && touch testing.success"
-
-        else
-            koha-shell ${KOHA_INSTANCE} -p -c "{ ( find t/db_dependent/selenium -name '*.t' -not -name '00-onboarding.t' | sort ) ; ( find t xt -name '*.t' -not -path \"t/db_dependent/selenium/*\" | shuf ) } \
-                                |
-                                  JUNIT_OUTPUT_FILE=junit_main.xml \
-                                  KOHA_TESTING=1 \
-                                  KOHA_NO_TABLE_LOCKS=1 \
-                                  KOHA_INTRANET_URL=http://koha:8081 \
-                                  KOHA_OPAC_URL=http://koha:8080 \
-                                  KOHA_USER=${KOHA_USER} \
-                                  KOHA_PASS=${KOHA_PASS} \
-                                  SELENIUM_ADDR=selenium \
-                                  SELENIUM_PORT=4444 \
-                                  TEST_QA=1 \
-                                  xargs prove -j ${KOHA_PROVE_CPUS} \
+                                  prove -j ${KOHA_PROVE_CPUS} \
                                   --rules='par=t/db_dependent/00-strict.t' \
-                                  --rules='seq=t/db_dependent/**.t' \
-                                  --timer --harness=TAP::Harness::JUnit -r \
+                                  --rules='seq=t/db_dependent/**.t' --rules='par=**' \
+                                  --timer --harness=TAP::Harness::JUnit -s -r t/ xt/ \
                                   && touch testing.success"
-        fi
-
     fi
 else
     # TODO: We could use supervise as the main loop
