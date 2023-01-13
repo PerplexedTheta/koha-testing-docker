@@ -198,7 +198,7 @@ fi
 
 if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
 
-
+    export KOHA_TESTING=1
 
     if [ ${COVERAGE} ]; then
 
