@@ -7,7 +7,6 @@ export KOHA_OPAC_URL=http://koha:8080
 export SELENIUM_ADDR=${SELENIUM_ADDR}
 export SELENIUM_PORT=${SELENIUM_PORT}
 export PERL5LIB="/kohadevbox/koha:/kohadevbox/koha/lib:/kohadevbox/qa-test-tools"
-export TEST_QA=1
 
 export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadevbox/node_modules/.bin/
 
