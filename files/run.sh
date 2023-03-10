@@ -123,9 +123,9 @@ mkdir -p "/var/lib/koha/${KOHA_INSTANCE}/.cache" \
   && echo "    [*] Created cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   || echo "    [x] Error creating cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/"
 
-mv /root/.cache/Cypress "/var/lib/koha/${KOHA_INSTANCE}/.cache/." \
-  && echo "    [*] Cypress dir moved to /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
-  || echo "    [x] Error moving Cypress dir to /var/lib/koha/${KOHA_INSTANCE}/.cache/"
+ln -s /kohadevbox/Cypress "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
+  && echo "    [*] Cypress dir linked to /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
+  || echo "    [x] Error linking Cypress dir to /var/lib/koha/${KOHA_INSTANCE}/.cache/"
 
 chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   && echo "    [*] Cypress dir chowned correctly" \
