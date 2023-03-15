@@ -106,16 +106,6 @@ envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/flush_memcached > ${BUILD_D
 chmod +x ${BUILD_DIR}/bin/*
 
 koha-create --request-db ${KOHA_INSTANCE} --memcached-servers memcached:11211
-# Fix UID
-if [ ${LOCAL_USER_ID} ]; then
-    usermod -o -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
-    # Fix permissions due to UID change
-    chown -R "${KOHA_INSTANCE}-koha" "/var/cache/koha/${KOHA_INSTANCE}"
-    chown -R "${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}"
-    chown -R "${KOHA_INSTANCE}-koha" "/var/lock/koha/${KOHA_INSTANCE}"
-    chown -R "${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}"
-    chown -R "${KOHA_INSTANCE}-koha" "/var/run/koha/${KOHA_INSTANCE}"
-fi
 
 echo "[cypress] Make the pre-built cypress available to the instance user [HACK]"
 
@@ -127,9 +117,21 @@ ln -s /kohadevbox/Cypress "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   && echo "    [*] Cypress dir linked to /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   || echo "    [x] Error linking Cypress dir to /var/lib/koha/${KOHA_INSTANCE}/.cache/"
 
-chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
-  && echo "    [*] Cypress dir chowned correctly" \
-  || echo "    [x] Error running chown on Cypress dir"
+# Fix UID
+if [ ${LOCAL_USER_ID} ]; then
+    usermod -o -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
+
+    chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/kohadevbox/Cypress" \
+      && echo "    [*] Cypress dir chowned correctly" \
+      || echo "    [x] Error running chown on Cypress dir"
+
+    # Fix permissions due to UID change
+    chown -R "${KOHA_INSTANCE}-koha" "/var/cache/koha/${KOHA_INSTANCE}"
+    chown -R "${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}"
+    chown -R "${KOHA_INSTANCE}-koha" "/var/lock/koha/${KOHA_INSTANCE}"
+    chown -R "${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}"
+    chown -R "${KOHA_INSTANCE}-koha" "/var/run/koha/${KOHA_INSTANCE}"
+fi
 
 # This needs to be done ONCE koha-create has run (i.e. kohadev-koha user exists)
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/apache2_envvars > /etc/apache2/envvars
