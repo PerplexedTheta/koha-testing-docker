@@ -113,9 +113,9 @@ mkdir -p "/var/lib/koha/${KOHA_INSTANCE}/.cache" \
   && echo "    [*] Created cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   || echo "    [x] Error creating cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/"
 
-chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
-  && echo "[cypress]    [*] Chowning /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
-  || echo "[cypress]    [x] Error chowning cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/"
+chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
+  && echo "    [*] Chowning /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
+  || echo "    [x] Error chowning cache dir /var/lib/koha/${KOHA_INSTANCE}/.cache/"
 
 ln -s /kohadevbox/Cypress "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
   && echo "    [*] Cypress dir linked to /var/lib/koha/${KOHA_INSTANCE}/.cache/" \
@@ -200,7 +200,10 @@ fi
 # Stop apache2
 service apache2 stop
 
-chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}"
+echo "[logs] Chowning logs"
+chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}" \
+  && echo "    [*] Success chowning /var/log/koha/${KOHA_INSTANCE}" \
+  || echo "    [x] Error chowning cache dir /var/log/koha/${KOHA_INSTANCE}"
 
 # Enable and start koha-plack and koha-z3950-responder
 koha-plack           --enable ${KOHA_INSTANCE}
