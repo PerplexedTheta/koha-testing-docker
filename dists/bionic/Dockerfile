@@ -109,10 +109,11 @@ RUN apt-get -y update \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
-## Add Yarn
-# Add node repo
-RUN wget -q -O- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-RUN echo "deb http://deb.nodesource.com/node_12.x bionic main" > /etc/apt/sources.list.d/node.list
+# Add Node.js
+RUN wget -O- -q https://deb.nodesource.com/setup_18.x | bash -
+# Pin Node.js v18
+COPY files/nodejs.pin /etc/apt/preferences.d/nodejs
+
 # Add yarn repo
 RUN wget -q -O- https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
