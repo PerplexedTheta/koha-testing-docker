@@ -107,10 +107,24 @@ RUN apt-get -y update \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
+<<<<<<< HEAD
 ## Add Yarn
 # Add node repo
 RUN wget -q -O- https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
 RUN echo "deb http://deb.nodesource.com/node_12.x stretch main" > /etc/apt/sources.list.d/node.list
+||||||| parent of 1de56cf (Issue #388: Bump Node.js version (v18))
+# Add Node.js
+RUN wget -O- -q https://deb.nodesource.com/setup_14.x | bash -
+# Pin Node.js v14
+COPY files/nodejs.pin /etc/apt/preferences.d/nodejs
+
+=======
+# Add Node.js
+RUN wget -O- -q https://deb.nodesource.com/setup_18.x | bash -
+# Pin Node.js v14
+COPY files/nodejs.pin /etc/apt/preferences.d/nodejs
+
+>>>>>>> 1de56cf (Issue #388: Bump Node.js version (v18))
 # Add yarn repo
 RUN wget -q -O- https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
