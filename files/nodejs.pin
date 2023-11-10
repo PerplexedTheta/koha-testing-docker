@@ -1,0 +1,3 @@
+Package: nodejs
+Pin: version 18.*
+Pin-Priority: 999
