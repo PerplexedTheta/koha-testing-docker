@@ -108,16 +108,20 @@ RUN wget -O- -q https://deb.nodesource.com/setup_18.x | bash -
 COPY files/nodejs.pin /etc/apt/preferences.d/nodejs
 
 # Add yarn repo
-RUN wget -q -O- https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
+   && wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
+      | gpg --dearmor \
+      | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
+   && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 # Install Node.js and Yarn
 RUN apt-get update \
    && apt-get -y install nodejs yarn \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
-# Install gulp
-RUN npm install gulp-cli -g
+# Install some tool
+RUN yarn global add gulp-cli swagger-cli
 
 # Add git-bz
 RUN cd /usr/local/share \
