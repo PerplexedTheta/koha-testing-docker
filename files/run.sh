@@ -100,6 +100,20 @@ envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/flush_memcached > ${BUILD_D
 chmod +x ${BUILD_DIR}/bin/*
 
 koha-create --request-db ${KOHA_INSTANCE} --memcached-servers memcached:11211
+
+if [[ -z ${SKIP_L10N} ]]; then
+    l10n_branch="master"
+    if ! [[ "$KOHA_IMAGE" =~ ^master ]]; then
+        l10n_branch=${KOHA_IMAGE:0:5}
+    fi
+    if [ ! -d "$BUILD_DIR/koha/misc/translator/po" ]; then
+        git clone --branch ${l10n_branch} https://gitlab.com/koha-community/koha-l10n.git $BUILD_DIR/koha/misc/translator/po
+    elif [ ! -d "$BUILD_DIR/koha/misc/translator/po/.git" ]; then
+        git -C $BUILD_DIR/koha/misc/translator/po fetch origin
+        git -C $BUILD_DIR/koha/misc/translator/po checkout origin/${l10n_branch}
+    fi
+fi
+
 # Fix UID
 if [ ${LOCAL_USER_ID} ]; then
     usermod -o -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
