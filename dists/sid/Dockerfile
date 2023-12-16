@@ -75,7 +75,7 @@ RUN curl -s http://debian.koha-community.org/koha/gpg.asc  | \
          --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
     && chmod 644 /etc/apt/trusted.gpg.d/koha.gpg
 
-RUN echo "deb http://debian.koha-community.org/koha-staging 23.11 main" >> /etc/apt/sources.list.d/koha.list
+RUN echo "deb http://debian.koha-community.org/koha 23.11 main" >> /etc/apt/sources.list.d/koha.list
 
 RUN apt-get -y update
 

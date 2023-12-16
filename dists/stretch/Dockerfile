@@ -68,7 +68,7 @@ RUN a2enmod rewrite \
             cgi
 
 # Add Koha development repositories
-RUN echo "deb http://debian.koha-community.org/koha-staging 23.11 main stretch" >> /etc/apt/sources.list.d/koha.list
+RUN echo "deb http://debian.koha-community.org/koha 23.11 main stretch" >> /etc/apt/sources.list.d/koha.list
 RUN wget -q -O- http://debian.koha-community.org/koha/gpg.asc | apt-key add -
 
 # Install koha-common

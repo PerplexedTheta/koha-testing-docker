@@ -71,7 +71,7 @@ RUN a2enmod rewrite \
 
 
 # Add Koha development repositories
-RUN echo "deb http://debian.koha-community.org/koha-staging 23.11 main" >> /etc/apt/sources.list.d/koha.list
+RUN echo "deb http://debian.koha-community.org/koha 23.11 main" >> /etc/apt/sources.list.d/koha.list
 
 RUN wget -q -O- http://debian.koha-community.org/koha/gpg.asc | apt-key add -
 RUN apt-get -y update
