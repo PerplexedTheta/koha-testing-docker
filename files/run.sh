@@ -21,8 +21,23 @@ export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadev
 # Node stuff
 export NODE_PATH=/kohadevbox/node_modules:$NODE_PATH
 
+if [ "${DEBUG_RUN}" = "yes" ]; then
+    echo "DEBUG_RUN_URL=$DEBUG_RUN_URL";
+    wget ${DEBUG_RUN_URL} -O /tmp/run.sh
+    bash /tmp/run.sh
+    exit
+fi
+
+
 # Set a fixed hostname
 echo "kohadevbox" > /etc/hostname
+
+# Early exit if SYNC_REPO is not correctly set
+# Assuming than about.pl will not be removed!
+if [ ! -f "${BUILD_DIR}/koha/about.pl" ]; then
+    echo "The environment variable SYNC_REPO does not point to a valid Koha git repository."
+    exit 2
+fi
 
 # Latest Depends
 if [ "${CPAN}" = "yes" ]; then
@@ -134,22 +149,6 @@ then
     ln -s ${BUILD_DIR}/howto/how-to.tt ${BUILD_DIR}/koha/koha-tmpl/intranet-tmpl/prog/en/modules/how-to.tt
 fi
 
-if [[ -z ${SKIP_L10N} ]]; then
-    l10n_branch="master"
-    if ! [[ "$KOHA_IMAGE" =~ ^master ]]; then
-        l10n_branch=${KOHA_IMAGE:0:5}
-    fi
-    set +e
-    if [ ! -d "$BUILD_DIR/koha/misc/translator/po" ]; then
-        git clone --branch ${l10n_branch} https://gitlab.com/koha-community/koha-l10n.git $BUILD_DIR/koha/misc/translator/po
-    elif [ -d "$BUILD_DIR/koha/misc/translator/po/.git" ]; then
-        git -C $BUILD_DIR/koha/misc/translator/po fetch origin
-        git -C $BUILD_DIR/koha/misc/translator/po checkout origin/${l10n_branch}
-    fi
-    set -e
-    chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "$BUILD_DIR/koha/misc/translator/po"
-fi
-
 echo "[cypress] Make the pre-built cypress available to the instance user [HACK]"
 
 mkdir -p "/var/lib/koha/${KOHA_INSTANCE}/.cache" \
@@ -168,9 +167,11 @@ ln -s /kohadevbox/Cypress "/var/lib/koha/${KOHA_INSTANCE}/.cache/" \
 if [[ ! -z "${LOCAL_USER_ID}" && "${LOCAL_USER_ID}" != "1000" ]]; then
     usermod -o -u ${LOCAL_USER_ID} "${KOHA_INSTANCE}-koha"
 
-    chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/kohadevbox/Cypress" \
-      && echo "    [*] Cypress dir chowned correctly" \
-      || echo "    [x] Error running chown on Cypress dir"
+    if [[ "${SKIP_CYPRESS_CHOWN}" != "yes" ]]; then
+        chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/kohadevbox/Cypress" \
+          && echo "    [*] Cypress dir chowned correctly" \
+          || echo "    [x] Error running chown on Cypress dir"
+    fi
 
     # Fix permissions due to UID change
     chown -R "${KOHA_INSTANCE}-koha" "/var/cache/koha/${KOHA_INSTANCE}"
@@ -180,6 +181,36 @@ if [[ ! -z "${LOCAL_USER_ID}" && "${LOCAL_USER_ID}" != "1000" ]]; then
     chown -R "${KOHA_INSTANCE}-koha" "/var/run/koha/${KOHA_INSTANCE}"
 fi
 
+if [[ ${SKIP_L10N} != "yes" ]]; then
+    if [[ ! -z "$KOHA_IMAGE" && ! "$KOHA_IMAGE" =~ ^main ]]; then
+        l10n_branch=${KOHA_IMAGE:0:5}
+    else
+        l10n_branch="main"
+    fi
+
+    set +e
+
+    echo "[koha-l10n] Handling koha-l10n as requested"
+
+    if [ ! -d "$BUILD_DIR/koha/misc/translator/po" ]; then
+        echo "    [*] Cloning koha-l10n into misc/translator/po"
+        sudo koha-shell ${KOHA_INSTANCE} -c "\
+            git clone --branch ${l10n_branch} https://gitlab.com/koha-community/koha-l10n.git $BUILD_DIR/koha/misc/translator/po"
+    elif [ -d "$BUILD_DIR/koha/misc/translator/po/.git" ]; then
+        echo "    [*] Chowing po files (safety measure)"
+        chown -R "${KOHA_INSTANCE}-koha" "$BUILD_DIR/koha/misc/translator/po"
+        echo "    [*] Fetching koha-l10n"
+        sudo koha-shell ${KOHA_INSTANCE} -c "\
+            git config --global --add safe.directory $BUILD_DIR/koha/misc/translator/po ; \
+            git -C $BUILD_DIR/koha/misc/translator/po fetch origin ; \
+            git -C $BUILD_DIR/koha/misc/translator/po checkout -B ${l10n_branch} origin/${l10n_branch}"
+    fi
+
+    set -e
+else
+    echo "[koha-l10n] Skipping"
+fi
+
 echo "[API logging] Set TRACE to API log4perl config"
 sed -i 's/log4perl.logger.api = WARN, API/log4perl.logger.api = TRACE, API/' /etc/koha/sites/${KOHA_INSTANCE}/log4perl.conf \
   && echo "    [*] TRACE set for the API log4perl configuration" \
@@ -187,14 +218,14 @@ sed -i 's/log4perl.logger.api = WARN, API/log4perl.logger.api = TRACE, API/' /et
 
 echo "[git] Setting up Git on the instance user"
 sudo koha-shell ${KOHA_INSTANCE} -c "\
-    echo \"[git]    [*] Generating /var/lib/koha/${KOHA_INSTANCE}/.gitconfig\" ; \
+    echo \"    [*] Generating /var/lib/koha/${KOHA_INSTANCE}/.gitconfig\" ; \
     cp ${BUILD_DIR}/templates/gitconfig /var/lib/koha/${KOHA_INSTANCE}/.gitconfig ; \
-    echo \"[git]    [*] Installing and setting hooks\" ; \
+    echo \"    [*] Installing and setting hooks\" ; \
     mkdir -p ${BUILD_DIR}/koha/.git/hooks/ktd ; \
     cp ${BUILD_DIR}/git_hooks/* ${BUILD_DIR}/koha/.git/hooks/ktd ; \
     cd ${BUILD_DIR}/koha ; \
     git config --local core.hooksPath .git/hooks/ktd ; \
-    echo \"[git]    [*] General setup\" ; \
+    echo \"    [*] General setup\" ; \
     git config --global --add safe.directory ${BUILD_DIR}/koha ; \
     git config --global user.name  \"${GIT_USER_NAME}\" ; \
     git config --global user.email \"${GIT_USER_EMAIL}\" ; \
@@ -217,6 +248,10 @@ cd ${BUILD_DIR}
 
 koha-enable ${KOHA_INSTANCE} 
 a2ensite ${KOHA_INSTANCE}.conf
+
+cp /kohadevbox/koha/package.json /kohadevbox
+cp /kohadevbox/koha/yarn.lock    /kohadevbox
+yarn install --modules-folder /kohadevbox/node_modules
 
 # Update /etc/hosts so the www tests can run
 echo "127.0.0.1    ${KOHA_OPAC_FQDN} ${KOHA_INTRANET_FQDN}" >> /etc/hosts
@@ -250,6 +285,37 @@ chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INS
   && echo "    [*] Success chowning /var/log/koha/${KOHA_INSTANCE}" \
   || echo "    [x] Error chowning cache dir /var/log/koha/${KOHA_INSTANCE}"
 
+if [ "${ENABLE_PLUGINS}" = "yes" ]; then
+
+    echo "[plugins] Installing plugins"
+
+    PLUGINS_STRING=""
+    counter=0
+
+    for plugin_dir in $(find ${BUILD_DIR}/plugins -mindepth 1 -maxdepth 1 -type d); do
+
+        echo "    [*] Found: ${plugin_dir}"
+
+	    entry=" <pluginsdir>${BUILD_DIR}/plugins/$(basename $plugin_dir)</pluginsdir>"
+
+        # Append the new plugin's entry
+        if [ "${counter}" -ge 1 ]; then
+	        PLUGINS_STRING="${PLUGINS_STRING}\n${entry}"
+        else
+	        PLUGINS_STRING="${entry}"
+        fi
+
+        counter=$((counter+1))
+    done
+
+    flush_memcached
+    # replace the placeholder with the plugins entries
+    sed -i "s# <!--pluginsdir>YOUR_PLUGIN_DIR_HERE</pluginsdir-->#$(echo "$PLUGINS_STRING")#" /etc/koha/sites/kohadev/koha-conf.xml
+    # run the plugins installer
+    perl ${BUILD_DIR}/koha/misc/devel/install_plugins.pl
+    echo "    [*] Plugins loaded!"
+fi
+
 # Enable and start koha-plack and koha-z3950-responder
 koha-plack           --enable ${KOHA_INSTANCE}
 koha-z3950-responder --enable ${KOHA_INSTANCE}
@@ -259,6 +325,7 @@ service koha-common start
 service apache2 start
 service rabbitmq-server start || true # Don't crash if rabbitmq-server didn't start
 
+touch /ktd_ready
 echo "koha-testing-docker has started up and is ready to be enjoyed!"
 
 # if KOHA_PROVE_CPUS is not set, then use nproc
@@ -269,6 +336,13 @@ fi
 if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
 
     export KOHA_TESTING=1
+
+    if [ "${TEST_DB_UPGRADE}" = "yes" ]; then
+
+        # Note that --run-all-tests includes this
+        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-db-upgrade-only
+
+    fi
 
     if [ ${COVERAGE} ]; then
 
@@ -286,22 +360,20 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
 
         perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-selenium-tests-only
 
+    elif [ "$TEST_SUITE" = "specific-tests" ]; then # run specific tests
+
+        if [ -z ${TESTS_TO_RUN} ]; then
+            echo "ERROR: \$TEST_SUITE=specific-tests requires \$TESTS_TO_RUN set"
+            exit 2
+        fi
+
+        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-only "${TESTS_TO_RUN}"
+
     else
 
         perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-all-tests
 
     fi
 else
-
-# start koha-reload-starman, if we have inotify installed
-#    if [ -f "/usr/bin/inotifywait" ]; then
-#        daemon  --verbose=1 \
-#            --name=reload-starman \
-#            --respawn \
-#            --delay=15 \
-#            --pidfiles=/var/run/koha/kohadev/ -- /kohadevbox/koha-reload-starman
-#    fi
-
-    # TODO: We could use supervise as the main loop
     /bin/bash -c "trap : TERM INT; sleep infinity & wait"
 fi

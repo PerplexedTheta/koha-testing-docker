@@ -274,8 +274,9 @@ __END_SRU_PUBLICSERVER__
  <authorityserver>authorities</authorityserver>
  <authorityservershadow>1</authorityservershadow>
  <pluginsdir>__PLUGINS_DIR__</pluginsdir> <!-- This entry can be repeated to use multiple directories -->
- <!--pluginsdir>/kohadevbox/koha_plugin</pluginsdir-->
+ <!--pluginsdir>YOUR_PLUGIN_DIR_HERE</pluginsdir-->
  <enable_plugins>1</enable_plugins>
+ <plugins_restart>1</plugins_restart>
  <upload_path>__UPLOAD_PATH__</upload_path>
  <tmp_path>__TMP_PATH__</tmp_path>
  <intranetdir>/usr/share/koha/intranet/cgi-bin</intranetdir>
