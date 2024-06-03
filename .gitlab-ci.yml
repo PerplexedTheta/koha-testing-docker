@@ -11,117 +11,77 @@ variables:
   DOCKER_DRIVER: overlay2
   FF_NETWORK_PER_BUILD: 1
 
-#sid:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:main-sid --no-cache --rm -f dists/sid/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:main-sid
-#  - docker image rm koha/koha-testing:main-sid
-#  only:
-#    - main@koha-community/koha-testing-docker
-
 trixie:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-trixie --no-cache --rm -f dists/trixie/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-trixie --no-cache --rm -f dists/trixie/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-trixie
-  - docker image rm koha/koha-testing:main-trixie
+  - docker push koha/koha-testing:24.05-trixie
+  - docker image rm koha/koha-testing:24.05-trixie
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 bookworm:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-bookworm --no-cache --rm -f dists/bookworm/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-bookworm --no-cache --rm -f dists/bookworm/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-bookworm
-  - docker tag  koha/koha-testing:main-bookworm koha/koha-testing:main
-  - docker push koha/koha-testing:main
-  - docker image rm koha/koha-testing:main-bookworm
+  - docker push koha/koha-testing:24.05-bookworm
+  - docker tag  koha/koha-testing:24.05-bookworm koha/koha-testing:24.05
+  - docker push koha/koha-testing:24.05
+  - docker image rm koha/koha-testing:24.05-bookworm
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 bullseye:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-bullseye --no-cache --rm -f dists/bullseye/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-bullseye --no-cache --rm -f dists/bullseye/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-bullseye
-  - docker image rm koha/koha-testing:main-bullseye
+  - docker push koha/koha-testing:24.05-bullseye
+  - docker image rm koha/koha-testing:24.05-bullseye
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 buster:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-buster --no-cache --rm -f dists/buster/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-buster --no-cache --rm -f dists/buster/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-buster
-  - docker image rm koha/koha-testing:main-buster
+  - docker push koha/koha-testing:24.05-buster
+  - docker image rm koha/koha-testing:24.05-buster
   only:
-    - main@koha-community/koha-testing-docker
-
-#stretch:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:main-stretch --no-cache --rm -f dists/stretch/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:main-stretch
-#  - docker image rm koha/koha-testing:main-stretch
-#  only:
-#    - main@koha-community/koha-testing-docker
-
-#xenial:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:main-xenial --no-cache --rm -f dists/xenial/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:main-xenial
-#  - docker image rm koha/koha-testing:main-xenial
-#  only:
-#    - main@koha-community/koha-testing-docker
-
-#bionic:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:main-bionic --no-cache --rm -f dists/bionic/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:main-bionic
-#  - docker image rm koha/koha-testing:main-bionic
-#  only:
-#    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 focal:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-focal --no-cache --rm -f dists/focal/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-focal --no-cache --rm -f dists/focal/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-focal
-  - docker image rm koha/koha-testing:main-focal
+  - docker push koha/koha-testing:24.05-focal
+  - docker image rm koha/koha-testing:24.05-focal
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 jammy:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-jammy --no-cache --rm -f dists/jammy/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-jammy --no-cache --rm -f dists/jammy/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-jammy
-  - docker image rm koha/koha-testing:main-jammy
+  - docker push koha/koha-testing:24.05-jammy
+  - docker image rm koha/koha-testing:24.05-jammy
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 lunar:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-lunar --no-cache --rm -f dists/lunar/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-lunar --no-cache --rm -f dists/lunar/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-lunar
-  - docker image rm koha/koha-testing:main-lunar
+  - docker push koha/koha-testing:24.05-lunar
+  - docker image rm koha/koha-testing:24.05-lunar
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 # -----------------------------------
 # armd64 jobs
@@ -134,12 +94,12 @@ bullseye-arm64v8:
   tags:
     - arm64
   script:
-  - docker build -t koha/koha-testing:main-bullseye-arm64v8 --no-cache --rm -f dists/arm64v8/bullseye/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-bullseye-arm64v8 --no-cache --rm -f dists/arm64v8/bullseye/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-bullseye-arm64v8
-  - docker image rm koha/koha-testing:main-bullseye-arm64v8
+  - docker push koha/koha-testing:24.05-bullseye-arm64v8
+  - docker image rm koha/koha-testing:24.05-bullseye-arm64v8
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 bookworm-arm64v8:
   image: arm64v8/docker
@@ -149,12 +109,12 @@ bookworm-arm64v8:
   tags:
     - arm64
   script:
-  - docker build -t koha/koha-testing:main-bookworm-arm64v8 --no-cache --rm -f dists/arm64v8/bookworm/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-bookworm-arm64v8 --no-cache --rm -f dists/arm64v8/bookworm/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-bookworm-arm64v8
-  - docker image rm koha/koha-testing:main-bookworm-arm64v8
+  - docker push koha/koha-testing:24.05-bookworm-arm64v8
+  - docker image rm koha/koha-testing:24.05-bookworm-arm64v8
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker
 
 focal-arm64v8:
   image: arm64v8/docker
@@ -164,9 +124,9 @@ focal-arm64v8:
   tags:
     - arm64
   script:
-  - docker build -t koha/koha-testing:main-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
+  - docker build -t koha/koha-testing:24.05-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-focal-arm64v8
-  - docker image rm koha/koha-testing:main-focal-arm64v8
+  - docker push koha/koha-testing:24.05-focal-arm64v8
+  - docker image rm koha/koha-testing:24.05-focal-arm64v8
   only:
-    - main@koha-community/koha-testing-docker
+    - 24.05@koha-community/koha-testing-docker

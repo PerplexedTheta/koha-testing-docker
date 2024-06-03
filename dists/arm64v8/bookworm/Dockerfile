@@ -1,4 +1,4 @@
-# Base it on Debian 10
+# Base it on Debian 12
 FROM arm64v8/debian:bookworm
 
 # File Author / Maintainer
@@ -6,8 +6,7 @@ LABEL maintainer="tomascohen@theke.io"
 
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
-
-ENV REFRESHED_AT 2024-05-09
+ENV REFRESHED_AT 2024-06-03
 
 # Install apache2 and testting deps
 # netcat: used for checking the DB is up
@@ -65,21 +64,21 @@ RUN a2enmod rewrite \
             cgi
 
 # Add Koha development repositories
-RUN echo "deb http://debian.koha-community.org/koha-staging dev main" >> /etc/apt/sources.list.d/koha.list \
-   && wget -q -O- http://debian.koha-community.org/koha/gpg.asc | apt-key add - \
-   && apt-get -y update \
+RUN curl -s http://debian.koha-community.org/koha/gpg.asc  | \
+        gpg --no-default-keyring \
+         --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
+    && chmod 644 /etc/apt/trusted.gpg.d/koha.gpg
+
+RUN echo "deb http://debian.koha-community.org/koha 24.05 main bookworm" >> /etc/apt/sources.list.d/koha.list
+
+# Install koha-common
+RUN apt-get -y update \
    && apt-cache policy koha-common \
    && apt-cache policy libmojolicious-perl \
    && apt-cache policy libjson-validator-perl \
    && apt-cache policy libmojolicious-plugin-openapi-perl \
    && apt-cache policy libyaml-libyaml-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
-
-# Install koha-common
-RUN apt-get -y update \
    && apt-get -y install \
-         libcrypt-cbc-perl \
          koha-common \
    && /etc/init.d/koha-common stop \
    && rm -rf /var/cache/apt/archives/* \
@@ -104,7 +103,6 @@ RUN apt-get -y update \
          libdevel-cover-report-clover-perl \
          libwebservice-ils-perl \
          libselenium-remote-driver-perl \
-         inotify-tools \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
@@ -132,8 +130,8 @@ RUN yarn global add gulp-cli swagger-cli
 
 # Embed /kohadevbox/node_modules
 RUN cd /kohadevbox \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/package.json?inline=false -O package.json \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/yarn.lock?inline=false -O yarn.lock \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/package.json?inline=false -O package.json \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/yarn.lock?inline=false -O yarn.lock \
     && yarn install --modules-folder /kohadevbox/node_modules \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
@@ -152,6 +150,7 @@ RUN cd /kohadevbox \
 # release-tools and koha-howto
 RUN cd /kohadevbox \
     && git clone https://gitlab.com/koha-community/release-tools.git \
+    && git clone https://gitlab.com/koha-community/koha-howto.git howto \
     && apt-get update \
     && apt-get -y install \
         libhtml-tableextract-perl \
@@ -184,13 +183,6 @@ RUN cd /kohadevbox \
     && wget -q -O dbgp.tar.gz https://gitlab.com/mjames/dbgp/-/raw/master/dbgp.tar.gz \
     && tar xvzf dbgp.tar.gz \
     && rm dbgp.tar.gz
-
-# Install temporary packages
-# RUN apt-get update \
-#    && apt-get -y install \
-#        <PACKAGES HERE>
-#    && rm -rf /var/cache/apt/archives/* \
-#    && rm -rf /var/lib/api/lists/*
 
 VOLUME /kohadevbox/koha
 

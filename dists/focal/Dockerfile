@@ -1,4 +1,4 @@
-# Base it on Ubuntu 18.04
+# Base it on Ubuntu focal
 FROM ubuntu:20.04
 
 # File Author / Maintainer
@@ -6,8 +6,7 @@ LABEL maintainer="tomascohen@theke.io"
 
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
-
-ENV REFRESHED_AT 2021-06-17
+ENV REFRESHED_AT 2024-06-03
 
 # Install apache2 and testting deps
 # netcat: used for checking the DB is up
@@ -40,6 +39,7 @@ RUN apt-get -y update \
       curl \
       apt-transport-https \
       mlocate \
+      iproute2 \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/apt/lists/*
 
@@ -63,12 +63,17 @@ RUN a2enmod rewrite \
             proxy_http \
             cgi
 
-# Add Koha development repositories
-RUN echo "deb http://debian.koha-community.org/koha-staging dev main" >> /etc/apt/sources.list.d/koha.list
+# Add Koha repository
+RUN echo "deb http://debian.koha-community.org/koha 24.05 main focal" >> /etc/apt/sources.list.d/koha.list
 RUN wget -q -O- http://debian.koha-community.org/koha/gpg.asc | apt-key add -
 
 # Install koha-common
 RUN apt-get -y update \
+   && apt-cache policy koha-common \
+   && apt-cache policy libmojolicious-perl \
+   && apt-cache policy libjson-validator-perl \
+   && apt-cache policy libmojolicious-plugin-openapi-perl \
+   && apt-cache policy libyaml-libyaml-perl \
    && apt-get -y install \
          koha-common \
    && /etc/init.d/koha-common stop \
@@ -94,13 +99,7 @@ RUN apt-get -y update \
          libdevel-cover-report-clover-perl \
          libwebservice-ils-perl \
          libselenium-remote-driver-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
-
-# Install temporary package
-RUN apt-get -y update \
-   && apt-get -y install \
-         libemail-address-perl \
+         inotify-tools \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
@@ -128,8 +127,8 @@ RUN yarn global add gulp-cli swagger-cli
 
 # Embed /kohadevbox/node_modules
 RUN cd /kohadevbox \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/package.json?inline=false -O package.json \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/yarn.lock?inline=false -O yarn.lock \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/package.json?inline=false -O package.json \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/yarn.lock?inline=false -O yarn.lock \
     && yarn install --modules-folder /kohadevbox/node_modules \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
@@ -181,23 +180,6 @@ RUN cd /kohadevbox \
     && wget -q -O dbgp.tar.gz https://gitlab.com/mjames/dbgp/-/raw/master/dbgp.tar.gz \
     && tar xvzf dbgp.tar.gz \
     && rm dbgp.tar.gz
-
-# download koha-reload-starman
-RUN cd /kohadevbox \
-    && wget https://gitlab.com/mjames/koha-reload-starman/-/raw/master/koha-reload-starman \
-    && chmod 755 koha-reload-starman \
-    && apt-get update \
-    && apt-get -y install inotify-tools \
-    && rm -rf /var/cache/apt/archives/* \
-    && rm -rf /var/lib/api/lists/*
-
-# Install temporary packages
-RUN apt-get update \
-   && apt-get -y install \
-       libalgorithm-munkres-perl \
-       libstruct-diff-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
 
 VOLUME /kohadevbox/koha
 

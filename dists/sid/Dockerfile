@@ -1,4 +1,4 @@
-# Base it on Debian 11
+# Base it on Debian Testing
 FROM debian:sid
 
 # File Author / Maintainer
@@ -6,13 +6,7 @@ LABEL maintainer="tomascohen@theke.io"
 
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
-
-# Set suitable debian sources
-#RUN echo "deb http://httpredir.debian.org/debian bullseye main" > /etc/apt/sources.list
-
-ENV REFRESHED_AT 2021-08-04
-
-#RUN apt-get -y update
+ENV REFRESHED_AT 2024-06-03
 
 # Install apache2 and testting deps
 # netcat: used for checking the DB is up
@@ -38,7 +32,7 @@ RUN apt-get -y update \
       pmtools \
       locales \
       netcat-openbsd \
-      python-gdbm \
+      python3-gdbm \
       vim \
       tmux \
       wget \
@@ -69,24 +63,21 @@ RUN a2enmod rewrite \
             proxy_http \
             cgi
 
-# Add Koha development repositories
+# Add Koha repository
 RUN curl -s http://debian.koha-community.org/koha/gpg.asc  | \
         gpg --no-default-keyring \
          --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
     && chmod 644 /etc/apt/trusted.gpg.d/koha.gpg
 
-RUN echo "deb http://debian.koha-community.org/koha-staging dev main" >> /etc/apt/sources.list.d/koha.list
-
-RUN apt-get -y update
-
-RUN apt-cache policy koha-common
-RUN apt-cache policy libmojolicious-perl
-RUN apt-cache policy libjson-validator-perl
-RUN apt-cache policy libmojolicious-plugin-openapi-perl
-RUN apt-cache policy libyaml-libyaml-perl
+RUN echo "deb http://debian.koha-community.org/koha 24.05 main" >> /etc/apt/sources.list.d/koha.list
 
 # Install koha-common
 RUN apt-get -y update \
+   && apt-cache policy koha-common \
+   && apt-cache policy libmojolicious-perl \
+   && apt-cache policy libjson-validator-perl \
+   && apt-cache policy libmojolicious-plugin-openapi-perl \
+   && apt-cache policy libyaml-libyaml-perl \
    && apt-get -y install \
          koha-common \
    && /etc/init.d/koha-common stop \
@@ -115,13 +106,6 @@ RUN apt-get -y update \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
-# Install temporary package
-RUN apt-get -y update \
-   && apt-get -y install \
-         libemail-address-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
-
 # Add nodejs repo
 RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
       | gpg --dearmor \
@@ -146,8 +130,8 @@ RUN yarn global add gulp-cli swagger-cli
 
 # Embed /kohadevbox/node_modules
 RUN cd /kohadevbox \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/package.json?inline=false -O package.json \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/yarn.lock?inline=false -O yarn.lock \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/package.json?inline=false -O package.json \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.05.x/yarn.lock?inline=false -O yarn.lock \
     && yarn install --modules-folder /kohadevbox/node_modules \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
@@ -199,23 +183,6 @@ RUN cd /kohadevbox \
     && wget -q -O dbgp.tar.gz https://gitlab.com/mjames/dbgp/-/raw/master/dbgp.tar.gz \
     && tar xvzf dbgp.tar.gz \
     && rm dbgp.tar.gz
-
-# download koha-reload-starman
-RUN cd /kohadevbox \
-    && wget https://gitlab.com/mjames/koha-reload-starman/-/raw/master/koha-reload-starman \
-    && chmod 755 koha-reload-starman \
-    && apt-get update \
-    && apt-get -y install inotify-tools \
-    && rm -rf /var/cache/apt/archives/* \
-    && rm -rf /var/lib/api/lists/*
-
-# Install temporary packages
-RUN apt-get update \
-   && apt-get -y install \
-       libalgorithm-munkres-perl \
-       libstruct-diff-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
 
 VOLUME /kohadevbox/koha
 
