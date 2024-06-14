@@ -1,5 +1,4 @@
-# Base it on Debian 11
-FROM debian:sid
+FROM ubuntu:24.04
 
 # File Author / Maintainer
 LABEL maintainer="tomascohen@theke.io"
@@ -7,12 +6,7 @@ LABEL maintainer="tomascohen@theke.io"
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
 
-# Set suitable debian sources
-#RUN echo "deb http://httpredir.debian.org/debian bullseye main" > /etc/apt/sources.list
-
-ENV REFRESHED_AT 2021-08-04
-
-#RUN apt-get -y update
+ENV REFRESHED_AT 2024-06-14
 
 # Install apache2 and testting deps
 # netcat: used for checking the DB is up
@@ -38,13 +32,13 @@ RUN apt-get -y update \
       pmtools \
       locales \
       netcat-openbsd \
-      python-gdbm \
+      python3-gdbm \
       vim \
       tmux \
       wget \
       curl \
       apt-transport-https \
-      mlocate \
+      plocate \
       iproute2 \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/apt/lists/*
@@ -69,31 +63,26 @@ RUN a2enmod rewrite \
             proxy_http \
             cgi
 
-# Add Koha development repositories
+# Add Koha repository
+RUN echo "deb http://debian.koha-community.org/koha 22.11 main" >> /etc/apt/sources.list.d/koha.list
 RUN curl -s http://debian.koha-community.org/koha/gpg.asc  | \
         gpg --no-default-keyring \
          --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
     && chmod 644 /etc/apt/trusted.gpg.d/koha.gpg
 
-#RUN echo "deb http://debian.koha-community.org/koha-staging exp main" >> /etc/apt/sources.list.d/koha.list
-RUN echo "deb http://debian.koha-community.org/koha-staging 22.11 main" >> /etc/apt/sources.list.d/koha.list
-RUN echo "deb http://deb3.kohaaloha.com/ka/koha-deps stable main sid" >> /etc/apt/sources.list.d/koha.list
-
-RUN apt-get -y update
-
-RUN apt-cache policy koha-common
-RUN apt-cache policy libmojolicious-perl
-RUN apt-cache policy libjson-validator-perl
-RUN apt-cache policy libmojolicious-plugin-openapi-perl
-RUN apt-cache policy libyaml-libyaml-perl
-
 # Install koha-common
 RUN apt-get -y update \
+   && apt-cache policy koha-common \
+   && apt-cache policy libmojolicious-perl \
+   && apt-cache policy libjson-validator-perl \
+   && apt-cache policy libmojolicious-plugin-openapi-perl \
+   && apt-cache policy libyaml-libyaml-perl \
    && apt-get -y install \
          koha-common \
    && /etc/init.d/koha-common stop \
    && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+   && rm -rf /var/lib/api/lists/* \
+   && rm -rf /usr/share/koha/misc/translator/po/* # Do not embed PO files
 
 RUN mkdir /kohadevbox
 WORKDIR /kohadevbox
@@ -101,10 +90,10 @@ WORKDIR /kohadevbox
 # Install testing extras, packages and cpan
 RUN apt-get -y update \
    && apt-get -y install \
+         perltidy \
          libexpat1-dev \
          libtemplate-plugin-gettext-perl \
          libdevel-cover-perl \
-\
          libmoosex-attribute-env-perl \
          libtest-dbix-class-perl \
          libtap-harness-junit-perl \
@@ -112,13 +101,6 @@ RUN apt-get -y update \
          libdevel-cover-report-clover-perl \
          libwebservice-ils-perl \
          libselenium-remote-driver-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
-
-# Install temporary package
-RUN apt-get -y update \
-   && apt-get -y install \
-         libemail-address-perl \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
 
@@ -137,6 +119,8 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.lis
 
 # Install Node.js and Yarn
 RUN apt-get update \
+   && apt-cache policy nodejs \
+   && apt-cache policy yarn \
    && apt-get -y install nodejs yarn \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/api/lists/*
@@ -146,8 +130,8 @@ RUN yarn global add gulp-cli swagger-cli
 
 # Embed /kohadevbox/node_modules
 RUN cd /kohadevbox \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/master/package.json?inline=false -O package.json \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/master/yarn.lock?inline=false -O yarn.lock \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/22.11.x/package.json?inline=false -O package.json \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/22.11.x/yarn.lock?inline=false -O yarn.lock \
     && yarn install --modules-folder /kohadevbox/node_modules \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
@@ -166,6 +150,7 @@ RUN cd /kohadevbox \
 # release-tools and koha-howto
 RUN cd /kohadevbox \
     && git clone https://gitlab.com/koha-community/release-tools.git \
+    && git clone https://gitlab.com/koha-community/koha-howto.git howto \
     && apt-get update \
     && apt-get -y install \
         libhtml-tableextract-perl \
@@ -179,16 +164,15 @@ RUN cd /kohadevbox \
 # cypress tests
 RUN apt-get update \
     && apt-get -y install \
-        libgtk2.0-0\
-        libgtk-3-0\
-        libgbm-dev\
-        libnotify-dev\
-        libgconf-2-4\
-        libnss3\
-        libxss1\
-        libasound2\
-        libxtst6\
-        xauth\
+        libgtk2.0-0t64 \
+        libgtk-3-0t64 \
+        libgbm-dev \
+        libnotify-dev \
+        libnss3 \
+        libxss1 \
+        libasound2t64 \
+        libxtst6 \
+        xauth \
         xvfb \
     && rm -rf /var/cache/apt/archives/* \
     && rm -rf /var/lib/api/lists/*
@@ -209,18 +193,18 @@ RUN cd /kohadevbox \
     && rm -rf /var/lib/api/lists/*
 
 # Install temporary packages
-RUN apt-get update \
-   && apt-get -y install \
-       libmojolicious-plugin-oauth2-perl \
-       libmojolicious-plugin-renderfile-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+# RUN apt-get update \
+#    && apt-get -y install \
+#        <PACKAGES HERE>
+#    && rm -rf /var/cache/apt/archives/* \
+#    && rm -rf /var/lib/api/lists/*
 
 VOLUME /kohadevbox/koha
 
 COPY files/run.sh /kohadevbox
 COPY files/templates /kohadevbox/templates
 COPY env/defaults.env /kohadevbox/templates/defaults.env
+COPY files/git_hooks /kohadevbox/git_hooks
 
 CMD ["/bin/bash", "/kohadevbox/run.sh"]
 

@@ -43,16 +43,6 @@ buster:
   only:
     - 22.11@koha-community/koha-testing-docker
 
-#bionic:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:22.11-bionic --no-cache --rm -f dists/bionic/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:22.11-bionic
-#  - docker image rm koha/koha-testing:22.11-bionic
-#  only:
-#    - 22.11@koha-community/koha-testing-docker
-
 focal:
   stage: build
   script:
@@ -70,5 +60,15 @@ jammy:
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker push koha/koha-testing:22.11-jammy
   - docker image rm koha/koha-testing:22.11-jammy
+  only:
+    - 22.11@koha-community/koha-testing-docker
+
+noble:
+  stage: build
+  script:
+  - docker build -t koha/koha-testing:22.11-noble --no-cache --rm -f dists/noble/Dockerfile .
+  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+  - docker push koha/koha-testing:22.11-noble
+  - docker image rm koha/koha-testing:22.11-noble
   only:
     - 22.11@koha-community/koha-testing-docker
