@@ -104,7 +104,6 @@ RUN apt-get -y update \
          libexpat1-dev \
          libtemplate-plugin-gettext-perl \
          libdevel-cover-perl \
-\
          libmoosex-attribute-env-perl \
          libtest-dbix-class-perl \
          libtap-harness-junit-perl \
@@ -134,6 +133,11 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.lis
       | gpg --dearmor \
       | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+# Pin nodejs version on trixie
+RUN echo "Package: nodejs"      >  /etc/apt/preferences.d/nodejs \
+    echo "Pin: version 18.*"    >> /etc/apt/preferences.d/nodejs \
+    echo "Pin-Priority: 999"    >> /etc/apt/preferences.d/nodejs
 
 # Install Node.js and Yarn
 RUN apt-get update \
@@ -199,22 +203,12 @@ RUN cd /kohadevbox \
     && tar xvzf dbgp.tar.gz \
     && rm dbgp.tar.gz
 
-# download koha-reload-starman
-RUN cd /kohadevbox \
-    && wget https://gitlab.com/mjames/koha-reload-starman/-/raw/master/koha-reload-starman \
-    && chmod 755 koha-reload-starman \
-    && apt-get update \
-    && apt-get -y install inotify-tools \
-    && rm -rf /var/cache/apt/archives/* \
-    && rm -rf /var/lib/api/lists/*
-
 # Install temporary packages
-RUN apt-get update \
-   && apt-get -y install \
-       libmojolicious-plugin-oauth2-perl \
-       libmojolicious-plugin-renderfile-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+# RUN apt-get update \
+#    && apt-get -y install \
+#        <PACKAGES HERE>
+#    && rm -rf /var/cache/apt/archives/* \
+#    && rm -rf /var/lib/api/lists/*
 
 VOLUME /kohadevbox/koha
 
