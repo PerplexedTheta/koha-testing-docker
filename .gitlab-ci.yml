@@ -73,13 +73,13 @@ jammy:
   only:
     - 24.05@koha-community/koha-testing-docker
 
-lunar:
+noble:
   stage: build
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-    - docker build -t koha/koha-testing:24.05-lunar --no-cache --rm -f dists/lunar/Dockerfile .
-    - docker push koha/koha-testing:24.05-lunar
-    - docker image rm koha/koha-testing:24.05-lunar
+    - docker build -t koha/koha-testing:24.05-noble --no-cache --rm -f dists/noble/Dockerfile .
+    - docker push koha/koha-testing:24.05-noble
+    - docker image rm koha/koha-testing:24.05-noble
   only:
     - 24.05@koha-community/koha-testing-docker
 
@@ -128,5 +128,20 @@ focal-arm64v8:
     - docker build -t koha/koha-testing:24.05-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
     - docker push koha/koha-testing:24.05-focal-arm64v8
     - docker image rm koha/koha-testing:24.05-focal-arm64v8
+  only:
+    - 24.05@koha-community/koha-testing-docker
+
+noble-arm64v8:
+  image: arm64v8/docker
+  stage: build
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  tags:
+    - arm64
+  script:
+    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+    - docker build -t koha/koha-testing:24.05-noble-arm64v8 --no-cache --rm -f dists/arm64v8/noble/Dockerfile .
+    - docker push koha/koha-testing:24.05-noble-arm64v8
+    - docker image rm koha/koha-testing:24.05-noble-arm64v8
   only:
     - 24.05@koha-community/koha-testing-docker
