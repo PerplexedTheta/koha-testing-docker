@@ -11,16 +11,6 @@ variables:
   DOCKER_DRIVER: overlay2
   FF_NETWORK_PER_BUILD: 1
 
-##sid:
-##  stage: build
-##  script:
-##  - docker build -t koha/koha-testing:23.05-sid --no-cache --rm -f dists/sid/Dockerfile .
-##  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-##  - docker push koha/koha-testing:23.05-sid
-##  - docker image rm koha/koha-testing:23.05-sid
-##  only:
-##    - 23.05@koha-community/koha-testing-docker
-
 trixie:
   stage: build
   script:
@@ -53,16 +43,6 @@ bullseye:
   only:
     - 23.05@koha-community/koha-testing-docker
 
-buster:
-  stage: build
-  script:
-  - docker build -t koha/koha-testing:23.05-buster --no-cache --rm -f dists/buster/Dockerfile .
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:23.05-buster
-  - docker image rm koha/koha-testing:23.05-buster
-  only:
-    - 23.05@koha-community/koha-testing-docker
-
 focal:
   stage: build
   script:
@@ -83,13 +63,13 @@ jammy:
   only:
     - 23.05@koha-community/koha-testing-docker
 
-lunar:
+noble:
   stage: build
   script:
-  - docker build -t koha/koha-testing:23.05-lunar --no-cache --rm -f dists/lunar/Dockerfile .
+  - docker build -t koha/koha-testing:23.05-noble --no-cache --rm -f dists/noble/Dockerfile .
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:23.05-lunar
-  - docker image rm koha/koha-testing:23.05-lunar
+  - docker push koha/koha-testing:23.05-noble
+  - docker image rm koha/koha-testing:23.05-noble
   only:
     - 23.05@koha-community/koha-testing-docker
 
