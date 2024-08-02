@@ -56,6 +56,7 @@ Options:
     --proxy               Use the proxied version of the compose file
     --name                Sets the project name
     --localrun            Start the container with local run.sh file
+    --file|-f             Compose configuration files
     --logs                Follow the koha container logs
     --help|-h             Display this help message
 
@@ -180,6 +181,8 @@ RUN=""
 SHELL_ACCESS="no"
 DBSHELL_ACCESS="no"
 
+COMPOSE_FILES=()
+
 FOLLOW_LOGS="no"
 
 USE_PROXY="no"
@@ -249,6 +252,10 @@ while [ $# -gt 0 ]; do
         --localrun)
             ENABLE_LOCAL_RUN_SCRIPT="yes"
             shift ;;
+        -f | --file)
+            COMPOSE_FILES+=("$2")
+            shift 2
+            ;;
         -*)
             printf "\nError: expected a docker compose action and got '$1' instead\n\n"
             usage
@@ -328,6 +335,10 @@ else
             else
                 COMPOSE_OPTIONS='-f docker-compose-proxy.yml'
             fi
+
+            for file in "${COMPOSE_FILES[@]}"; do
+                COMPOSE_OPTIONS+=" -f $file"
+            done
 
             if [ "$ENABLED_SEARCHENGINE" != "" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/${ES_IMAGE_TYPE}.yml"
