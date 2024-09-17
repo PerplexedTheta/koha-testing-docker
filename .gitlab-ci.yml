@@ -92,7 +92,7 @@ bullseye-arm64v8:
   variables:
     DOCKER_TLS_CERTDIR: ""
   tags:
-    - arm64
+    - saas-linux-medium-arm64
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
     - docker build -t koha/koha-testing:24.05-bullseye-arm64v8 --no-cache --rm -f dists/arm64v8/bullseye/Dockerfile .
@@ -107,7 +107,7 @@ bookworm-arm64v8:
   variables:
     DOCKER_TLS_CERTDIR: ""
   tags:
-    - arm64
+    - saas-linux-medium-arm64
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
     - docker build -t koha/koha-testing:24.05-bookworm-arm64v8 --no-cache --rm -f dists/arm64v8/bookworm/Dockerfile .
@@ -122,7 +122,7 @@ focal-arm64v8:
   variables:
     DOCKER_TLS_CERTDIR: ""
   tags:
-    - arm64
+    - saas-linux-medium-arm64
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
     - docker build -t koha/koha-testing:24.05-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
@@ -137,7 +137,7 @@ noble-arm64v8:
   variables:
     DOCKER_TLS_CERTDIR: ""
   tags:
-    - arm64
+    - saas-linux-medium-arm64
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
     - docker build -t koha/koha-testing:24.05-noble-arm64v8 --no-cache --rm -f dists/arm64v8/noble/Dockerfile .
