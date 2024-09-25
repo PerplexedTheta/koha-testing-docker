@@ -176,12 +176,6 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/archives/* \
     && rm -rf /var/lib/api/lists/*
 
-# Remote debugger
-RUN cd /kohadevbox \
-    && wget -q -O dbgp.tar.gz https://gitlab.com/mjames/dbgp/-/raw/master/dbgp.tar.gz \
-    && tar xvzf dbgp.tar.gz \
-    && rm dbgp.tar.gz
-
 # download koha-reload-starman
 RUN cd /kohadevbox \
     && wget https://gitlab.com/mjames/koha-reload-starman/-/raw/master/koha-reload-starman \

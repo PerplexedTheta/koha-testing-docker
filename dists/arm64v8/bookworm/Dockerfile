@@ -174,12 +174,6 @@ RUN apt-get update \
     && rm -rf /var/cache/apt/archives/* \
     && rm -rf /var/lib/api/lists/*
 
-# Remote debugger
-RUN cd /kohadevbox \
-    && wget -q -O dbgp.tar.gz https://gitlab.com/mjames/dbgp/-/raw/master/dbgp.tar.gz \
-    && tar xvzf dbgp.tar.gz \
-    && rm dbgp.tar.gz
-
 # Install temporary packages
 # RUN apt-get update \
 #    && apt-get -y install \
