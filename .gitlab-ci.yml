@@ -77,9 +77,9 @@ noble:
   stage: build
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-    - docker build -t koha/koha-testing:24.11-lunar --no-cache --rm -f dists/lunar/Dockerfile .
-    - docker push koha/koha-testing:24.11-lunar
-    - docker image rm koha/koha-testing:24.11-lunar
+    - docker build -t koha/koha-testing:24.11-noble --no-cache --rm -f dists/noble/Dockerfile .
+    - docker push koha/koha-testing:24.11-noble
+    - docker image rm koha/koha-testing:24.11-noble
   only:
     - 24.11@koha-community/koha-testing-docker
 
