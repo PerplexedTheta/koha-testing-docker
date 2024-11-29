@@ -248,12 +248,17 @@ if [ "${GIT_WORKTREE_SOURCE}" != "" ]; then
     echo "    [*] Added '${GIT_WORKTREE_SOURCE}' to safe directories"
 fi
 
-echo "    [*] Installing and setting hooks (${GIT_BASE_DIR})"
-sudo koha-shell ${KOHA_INSTANCE} -c "\
-    mkdir -p ${GIT_BASE_DIR}/.git/hooks/ktd ; \
-    cp ${BUILD_DIR}/git_hooks/* ${GIT_BASE_DIR}/.git/hooks/ktd ; \
-    cd ${GIT_BASE_DIR} ; \
-    git config --local core.hooksPath .git/hooks/ktd"
+if [ "${GIT_WORKTREE_SOURCE}" != "" ]; then
+    # Skip for worktrees
+    echo "    [!] Skipping hooks setup"
+else
+    echo "    [*] Installing and setting hooks (${GIT_BASE_DIR})"
+    sudo koha-shell ${KOHA_INSTANCE} -c "\
+        mkdir -p ${GIT_BASE_DIR}/.git/hooks/ktd ; \
+        cp ${BUILD_DIR}/git_hooks/* ${GIT_BASE_DIR}/.git/hooks/ktd ; \
+        cd ${GIT_BASE_DIR} ; \
+        git config --local core.hooksPath .git/hooks/ktd"
+fi
 
 # This needs to be done ONCE koha-create has run (i.e. kohadev-koha user exists)
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/apache2_envvars > /etc/apache2/envvars
