@@ -77,7 +77,7 @@ RUN apt-get -y update \
          koha-common \
    && /etc/init.d/koha-common stop \
    && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/* \
+   && rm -rf /var/lib/apt/lists/* \
    && rm -rf /usr/share/koha/misc/translator/po/* # Do not embed PO files
 
 RUN mkdir /kohadevbox
@@ -99,7 +99,7 @@ RUN apt-get -y update \
          libwebservice-ils-perl \
          libselenium-remote-driver-perl \
    && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+   && rm -rf /var/lib/apt/lists/*
 
 # Add nodejs repo
 RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
@@ -120,7 +120,7 @@ RUN apt-get update \
    && apt-cache policy yarn \
    && apt-get -y install nodejs yarn \
    && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+   && rm -rf /var/lib/apt/lists/*
 
 # Install some tool
 RUN yarn global add gulp-cli
@@ -151,7 +151,7 @@ RUN cd /kohadevbox \
     && apt-get -y install \
         bugz \
     && rm -rf /var/cache/apt/archives/* \
-    && rm -rf /var/lib/api/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # cypress tests
 RUN apt-get update \
@@ -168,14 +168,14 @@ RUN apt-get update \
         xauth\
         xvfb \
     && rm -rf /var/cache/apt/archives/* \
-    && rm -rf /var/lib/api/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Install temporary packages
 # RUN apt-get update \
 #    && apt-get -y install \
 #        <PACKAGES HERE>
 #    && rm -rf /var/cache/apt/archives/* \
-#    && rm -rf /var/lib/api/lists/*
+#    && rm -rf /var/lib/apt/lists/*
 
 VOLUME /kohadevbox/koha
 
