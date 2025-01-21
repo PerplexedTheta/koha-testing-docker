@@ -34,6 +34,7 @@ RUN apt-get -y update \
       netcat-openbsd \
       python3-gdbm \
       vim \
+      nano \
       tmux \
       wget \
       curl \

@@ -34,6 +34,7 @@ RUN apt-get -y update \
       netcat \
       python-gdbm \
       vim \
+      nano \
       tmux \
       wget \
       curl \
