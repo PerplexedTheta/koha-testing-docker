@@ -42,7 +42,8 @@ fi
 # Latest Depends
 if [ "${CPAN}" = "yes" ]; then
     echo "Installing latest versions of dependancies from cpan"
-    apt install cpanoutdated
+    apt update
+    apt install -y cpanoutdated
     cpan-outdated --exclude-core -p | cpanm
 fi
 
