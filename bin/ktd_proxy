@@ -36,6 +36,7 @@ Options:
     --start               Starts the proxy
     --stop                Yeah
     --status              Prints the proxy status
+    --pull                Pull the latest proxy images
     --help|-h             Display this help message
 
 EOF
@@ -102,6 +103,9 @@ while [ $# -gt 0 ]; do
         --stop)
             OP="stop"
             break ;;
+        --pull)
+            OP="pull"
+            break ;;
         -*)
             printf "\nError: invalid parameter passed '$1'\n\n"
             usage
@@ -136,6 +140,8 @@ if [ -n "$KTD_HOME" ]; then
             "$DOCKER_BINARY" compose -p proxy down
         elif [ "${OP}" = "status" ]; then
             print_status
+        elif [ "${OP}" = "pull" ]; then
+            "$DOCKER_BINARY" compose -f proxy/proxy.yml pull
         fi
 
         # back to the original working directory
