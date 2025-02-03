@@ -10,7 +10,9 @@ $ENV{LOG} = "test";
 
 my $nb_errors = 0;
 my @compiled_css = ( "staff-global", "opac" );
-my $modify_files;
+my $tidy_commands;
+
+my $in_container = -f '/.dockerenv';
 
 for my $filepath (`git diff --cached --name-only`) {
     chomp $filepath;
@@ -24,54 +26,42 @@ for my $filepath (`git diff --cached --name-only`) {
         $nb_errors++;
     }
 
-    if ( $file_ext =~ /^.pl|^.pm$/ ) {
-        system( qq{
-            docker exec kohadev-koha-1 /usr/bin/perl -wc /kohadevbox/koha/$filepath 2>&1 | grep -Pv "Subroutine \\w+ redefined at "
-        } ) == 0
-          or say "\n" and $nb_errors++;
+    if ( $file_ext =~ /^\.(pl|pm)$/ ) {
+        system( perl_valid_cmd($filepath) ) == 0
+            or say "\n" and $nb_errors++;
     }
-    elsif ( $file_ext eq '.tt' ) {
 
-        #TODO
-    }
-    elsif ( $file_ext eq '.js' ) {
-        my $tidy = ( $file_infos[1] =~ m{^koha-tmpl/intranet-tmpl/prog/js/vue/} ) ? 1 : 0;
-        unless ( $tidy ) {
-            my $cmd = q{git grep '/\* keep tidy \*/' } . $filepath;
-            $tidy = qx{$cmd};
-        }
-        if ($tidy) {
-            my $prettier_config_file = '/kohadevbox/koha/.prettierrc.js';
-            if ( -e $prettier_config_file ) {
-                $modify_files->{$filepath} =
-                    qq{yarn --silent run prettier --config-file $prettier_config_file --write $filepath};
-            } else {
-                $modify_files->{$filepath} =
-                    qq{yarn --silent run prettier --trailing-comma es5 --arrow-parens avoid --write $filepath};
-            }
-        }
-    }
-    elsif ( $file_ext eq '.ts' ) {
-        my $prettier_config_file = '/kohadevbox/koha/.prettierrc.js';
-        if ( -e $prettier_config_file ) {
-            $modify_files->{$filepath} = qq{yarn --silent run prettier --config-file $prettier_config_file --write $filepath};
-        }
-        else {
-            $modify_files->{$filepath} = qq{yarn --silent run prettier --trailing-comma es5 --arrow-parens avoid --write $filepath};
-        }
-    }
-    elsif ( $file_ext eq '.vue' ) {
-        $modify_files->{$filepath} = qq{yarn --silent run prettier --trailing-comma es5 --semi false --arrow-parens avoid --write $filepath};
+    if ( $file_ext =~ /^\.(pl|pm|t|js|ts|vue|tt|inc)$/ ) {
+        $tidy_commands->{$filepath} = tidy_cmd($filepath);
     }
 }
 
-if ( $modify_files ) {
-    say colored( "Some files need to be modified", "yellow" );
+sub get_filepath {
+    my ($filepath) = @_;
+    return $in_container ? $filepath : "/kohadevbox/koha/$filepath";
+}
+sub build_cmd {
+    my ($cmd) = @_;
+    return $in_container ? $cmd : sprintf(q{docker exec -w /kohadevbox/koha kohadev-koha-1 %s}, $cmd);
+}
+sub perl_valid_cmd {
+    my ($filepath) = @_;
+    my $cmd = sprintf '/usr/bin/perl -wc %s 2>&1 | grep -Pv "Subroutine \\w+ redefined at "', get_filepath($filepath);
+    return build_cmd($cmd);
+}
+sub tidy_cmd {
+    my ($filepath) = @_;
+    my $cmd = sprintf '/usr/bin/perl %s --perltidyrc=/kohadevbox/koha/.perltidyrc %s', get_filepath('misc/devel/tidy.pl'), get_filepath($filepath);
+    return build_cmd($cmd);
+}
+
+if ( $tidy_commands ) {
+    say colored( "Tidying...", "yellow" );
 
     # Prevent to reach a stash pop that will fail later
     # Do not modify files if they have changes that are not added to the git index yet (so part of the current commi)
     my @local_changes = map{ chomp; $_ } qx(git diff --name-only);
-    my @local_changes_on_files_to_modify = intersect(\@local_changes, [keys %$modify_files]);
+    my @local_changes_on_files_to_modify = intersect(\@local_changes, [keys %$tidy_commands]);
     if ( @local_changes_on_files_to_modify ) {
         say colored( "Cannot modify files with changes not added to the index yet", "red" );
         exit 1;
@@ -85,7 +75,7 @@ if ( $modify_files ) {
     }
 
     # Do modify the files
-    while ( my ( $filepath, $cmd ) = each %$modify_files ) {
+    while ( my ( $filepath, $cmd ) = each %$tidy_commands ) {
         qx($cmd);
     }
 
@@ -101,7 +91,7 @@ if ( $modify_files ) {
     }
 
     # Add changes to the commit
-    my $git_add_cmd = q{git add } . join(' ', keys %$modify_files);
+    my $git_add_cmd = q{git add } . join(' ', keys %$tidy_commands);
     qx{$git_add_cmd};
 }
 
