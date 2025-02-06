@@ -57,7 +57,7 @@ append_if_absent()
     local string=$1
     local file=$2
 
-    if grep -q -x -v "$string" $file; then
+    if ! grep -Fxq "$string" "$file"; then
         echo $string >> $file
     fi
 }
