@@ -105,6 +105,11 @@ RUN apt-get -y update \
    && rm -rf /var/cache/apt/archives/* \
    && rm -rf /var/lib/apt/lists/*
 
+# Temporary workaround, waiting for the packages to be ready in the Koha deb repo
+RUN cpanm -i --force --mirror http://cpan.cpantesters.org/ \
+        Test::PerlTidy \
+    && rm -r /root/.cpanm
+
 # Add nodejs repo
 RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
       | gpg --dearmor \
