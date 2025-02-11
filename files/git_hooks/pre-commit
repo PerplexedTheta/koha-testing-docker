@@ -28,7 +28,7 @@ for my $filepath (`git diff --cached --name-only`) {
 
     if ( $file_ext =~ /^\.(pl|pm)$/ ) {
         system( perl_valid_cmd($filepath) ) == 0
-            or say "\n" and $nb_errors++;
+            || $nb_errors++;
     }
 
     if ( $file_ext =~ /^\.(pl|pm|t|js|ts|vue|tt|inc)$/ ) {
@@ -36,30 +36,46 @@ for my $filepath (`git diff --cached --name-only`) {
     }
 }
 
-sub get_filepath {
-    my ($filepath) = @_;
-    return $in_container ? $filepath : "/kohadevbox/koha/$filepath";
-}
-sub build_cmd {
-    my ($cmd) = @_;
-    return $in_container ? $cmd : sprintf(q{docker exec -w /kohadevbox/koha kohadev-koha-1 %s}, $cmd);
-}
-sub perl_valid_cmd {
-    my ($filepath) = @_;
-    my $cmd = sprintf '/usr/bin/perl -wc %s 2>&1 | grep -Pv "Subroutine \\w+ redefined at "', get_filepath($filepath);
-    return build_cmd($cmd);
-}
-sub tidy_cmd {
-    my ($filepath) = @_;
-    my $cmd = sprintf '/usr/bin/perl %s --perltidyrc=/kohadevbox/koha/.perltidyrc %s', get_filepath('misc/devel/tidy.pl'), get_filepath($filepath);
-    return build_cmd($cmd);
+my $filepath;
+for my $l ( split '\n', `git diff-index -p -M --cached HEAD` ) {
+    if ( $l =~ /^diff --git a\/([^ ]*) .*$/ ) {
+        $filepath = $1;
+    }
+    if ( $l =~ /^\+ *console.log/ ) {
+        say colored( "$filepath contains console.log ($l)", 'red' );
+        $nb_errors++;
+    }
+    elsif ( $l =~ /^\+ *warn Data::Dumper::Dumper / ) {
+        say colored( "$filepath contains warn Data::Dumper::Dumper ($l)",
+            'red' );
+        $nb_errors++;
+    }
+
+    # This one could be uncommented when Koha will have the Logger module
+    elsif ( $l =~ /^\+ *warn / ) {
+        say "$filepath contains warn ($l)";
+        $nb_errors++;
+    }
+
+    elsif( $l =~ /\+ *\t/) { # fail also if there is some space before the tab
+        say colored( "$filepath contains a tab, must use 4 spaces ($l)",
+            'red' );
+        $nb_errors++;
+    }
+
+    elsif ( $l =~ m/^<<<<<<</ or $l =~ m/^>>>>>>>/ or $l =~ m/^=======/ ) {
+        say colored( "$filepath contains $& ($l)", 'red' );
+        $nb_errors++;
+    }
 }
 
-if ( $tidy_commands ) {
+if ($nb_errors) {
+    abording();
+} elsif ( $tidy_commands ) {
     say colored( "Tidying...", "yellow" );
 
     # Prevent to reach a stash pop that will fail later
-    # Do not modify files if they have changes that are not added to the git index yet (so part of the current commi)
+    # Do not modify files if they have changes that are not added to the git index yet (so part of the current commit)
     my @local_changes = map{ chomp; $_ } qx(git diff --name-only);
     my @local_changes_on_files_to_modify = intersect(\@local_changes, [keys %$tidy_commands]);
     if ( @local_changes_on_files_to_modify ) {
@@ -95,44 +111,6 @@ if ( $tidy_commands ) {
     qx{$git_add_cmd};
 }
 
-my $filepath;
-for my $l ( split '\n', `git diff-index -p -M --cached HEAD` ) {
-    if ( $l =~ /^diff --git a\/([^ ]*) .*$/ ) {
-        $filepath = $1;
-    }
-    if ( $l =~ /^\+ *console.log/ ) {
-        say colored( "$filepath contains console.log ($l)", 'red' );
-        $nb_errors++;
-    }
-    elsif ( $l =~ /^\+ *warn Data::Dumper::Dumper / ) {
-        say colored( "$filepath contains warn Data::Dumper::Dumper ($l)",
-            'red' );
-        $nb_errors++;
-    }
-
-    # This one could be uncommented when Koha will have the Logger module
-    elsif ( $l =~ /^\+ *warn / ) {
-        say "$filepath contains warn ($l)";
-        $nb_errors++;
-    }
-
-    elsif( $l =~ /\+ *\t/) { # fail also if there is some space before the tab
-        say colored( "$filepath contains a tab, must use 4 spaces ($l)",
-            'red' );
-        $nb_errors++;
-    }
-
-    elsif ( $l =~ m/^<<<<<<</ or $l =~ m/^>>>>>>>/ or $l =~ m/^=======/ ) {
-        say colored( "$filepath contains $& ($l)", 'red' );
-    }
-}
-
-if ($nb_errors) {
-    say "\nAre you sure you want to commit ?";
-    say "You can commit with the --no-verify argument";
-    exit 1;
-}
-
 say colored( "Success, pre-commit checks passed", 'green' );
 
 exit 0;
@@ -141,4 +119,40 @@ sub intersect{
     my ( $a, $b ) = @_;
     my %e = map { $_ => undef } @$a;
     return grep { exists( $e{$_} ) } @$b;
+}
+
+sub get_filepath {
+    my ($filepath) = @_;
+    return $in_container ? $filepath : "/kohadevbox/koha/$filepath";
+}
+sub build_cmd {
+    my ($cmd) = @_;
+    return $in_container ? $cmd : sprintf(q{docker exec -w /kohadevbox/koha kohadev-koha-1 %s}, $cmd);
+}
+sub perl_valid_cmd {
+    my ($filepath) = @_;
+    my $cmd = sprintf q{
+        sh -c '
+            output=$(/usr/bin/perl -wc %s 2>&1);
+            perl_exit=$?;
+            filtered=$(echo "$output" | grep -Pv "^(Subroutine \\w+ redefined at |.* syntax OK\$)" || true);
+            echo "$output" | grep -Pv "^Subroutine \\w+ redefined at " || true;
+            if [ $perl_exit -ne 0 ] || [ -n "$filtered" ]; then exit 255; else exit 0; fi
+        '
+    }, get_filepath($filepath);
+    $cmd =~ s|\n| |g;
+    return build_cmd($cmd);
+}
+sub tidy_cmd {
+    my ($filepath) = @_;
+    my $cmd = sprintf '/usr/bin/perl %s --perltidyrc=/kohadevbox/koha/.perltidyrc %s', get_filepath('misc/devel/tidy.pl'), get_filepath($filepath);
+    return build_cmd($cmd);
+}
+
+sub abording {
+    say "";
+    say colored( "Abording commit, encountered errors", "red" );
+    say "Are you sure you want to commit?";
+    say "You can commit with the --no-verify argument";
+    exit 1;
 }
