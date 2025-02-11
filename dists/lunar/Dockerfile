@@ -177,11 +177,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install temporary packages
-# RUN apt-get update \
-#    && apt-get -y install \
-#        <PACKAGES HERE>
-#    && rm -rf /var/cache/apt/archives/* \
-#    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+   && apt-get -y install \
+       libgit-wrapper-perl \
+   && rm -rf /var/cache/apt/archives/* \
+   && rm -rf /var/lib/apt/lists/*
 
 VOLUME /kohadevbox/koha
 
