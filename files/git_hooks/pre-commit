@@ -132,7 +132,7 @@ sub build_cmd {
 
     $cmd =~ s|"|\\"|g;
     $cmd =~ s|\$|\\\$|g;
-    return sprintf q{docker exec -w /kohadevbox/koha kohadev-koha-1 /bin/bash -c "source ~/.bashrc; %s"}, $cmd;
+    return sprintf q{docker exec --user kohadev-koha -w /kohadevbox/koha kohadev-koha-1 /bin/bash -c "source ~/.bashrc; %s"}, $cmd;
 }
 sub perl_valid_cmd {
     my ($filepath) = @_;
