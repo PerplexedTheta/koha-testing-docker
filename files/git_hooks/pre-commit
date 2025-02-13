@@ -121,10 +121,6 @@ sub intersect{
     return grep { exists( $e{$_} ) } @$b;
 }
 
-sub get_filepath {
-    my ($filepath) = @_;
-    return $in_container ? $filepath : "/kohadevbox/koha/$filepath";
-}
 sub build_cmd {
     my ($cmd) = @_;
 
@@ -144,13 +140,13 @@ sub perl_valid_cmd {
             echo "$output" | grep -Pv "^Subroutine \\w+ redefined at " || true;
             if [ $perl_exit -ne 0 ] || [ -n "$filtered" ]; then exit 255; else exit 0; fi
         '
-    }, get_filepath($filepath);
+    }, $filepath;
     $cmd =~ s|\n| |g;
     return build_cmd($cmd);
 }
 sub tidy_cmd {
     my ($filepath) = @_;
-    my $cmd = sprintf '/usr/bin/perl %s --perltidyrc=/kohadevbox/koha/.perltidyrc %s', get_filepath('misc/devel/tidy.pl'), get_filepath($filepath);
+    my $cmd = sprintf '/usr/bin/perl misc/devel/tidy.pl --perltidyrc=/kohadevbox/koha/.perltidyrc %s', $filepath;
     return build_cmd($cmd);
 }
 
