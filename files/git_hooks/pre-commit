@@ -127,7 +127,12 @@ sub get_filepath {
 }
 sub build_cmd {
     my ($cmd) = @_;
-    return $in_container ? $cmd : sprintf(q{docker exec -w /kohadevbox/koha kohadev-koha-1 /bin/bash -c 'source ~/.bashrc; %s'}, $cmd);
+
+    return $cmd if $in_container;
+
+    $cmd =~ s|"|\\"|g;
+    $cmd =~ s|\$|\\\$|g;
+    return sprintf q{docker exec -w /kohadevbox/koha kohadev-koha-1 /bin/bash -c "source ~/.bashrc; %s"}, $cmd;
 }
 sub perl_valid_cmd {
     my ($filepath) = @_;
