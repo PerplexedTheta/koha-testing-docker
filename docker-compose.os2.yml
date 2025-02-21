@@ -1,4 +1,3 @@
-version: '3'
 services:
     es:
         image: koha/elasticsearch-icu:opensearch-2.x
