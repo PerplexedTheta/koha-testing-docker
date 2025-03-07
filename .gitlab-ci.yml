@@ -83,16 +83,6 @@ jammy:
   only:
     - main@koha-community/koha-testing-docker
 
-lunar:
-  stage: build
-  script:
-  - docker build -t koha/koha-testing:main-lunar --no-cache --rm -f dists/lunar/Dockerfile .
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-  - docker push koha/koha-testing:main-lunar
-  - docker image rm koha/koha-testing:main-lunar
-  only:
-    - main@koha-community/koha-testing-docker
-
 noble:
   stage: build
   script:
