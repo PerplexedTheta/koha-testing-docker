@@ -128,16 +128,17 @@ RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
    && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 
 # Add yarn repo
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-   && wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
+RUN wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
       | gpg --dearmor \
       | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
 
 # Pin nodejs version on trixie
-RUN echo "Package: nodejs"      >  /etc/apt/preferences.d/nodejs \
-    echo "Pin: version 18.*"    >> /etc/apt/preferences.d/nodejs \
-    echo "Pin-Priority: 999"    >> /etc/apt/preferences.d/nodejs
+RUN echo "Package: nodejs"      >  /etc/apt/preferences.d/nodejs
+RUN echo "Pin: version 18.*"    >> /etc/apt/preferences.d/nodejs
+RUN echo "Pin-Priority: 999"    >> /etc/apt/preferences.d/nodejs
+
+RUN apt show nodejs
 
 # Install Node.js and Yarn
 RUN apt-get update \
