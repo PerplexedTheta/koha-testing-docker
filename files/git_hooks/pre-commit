@@ -26,12 +26,12 @@ for my $filepath (`git diff --cached --name-only`) {
         $nb_errors++;
     }
 
-    if ( $file_ext =~ /^\.(pl|pm)$/ ) {
+    if ( $file_ext =~ /^\.(pl|PL|pm)$/ ) {
         system( perl_valid_cmd($filepath) ) == 0
             || $nb_errors++;
     }
 
-    if ( $file_ext =~ /^\.(pl|pm|t|js|ts|vue|tt|inc)$/ ) {
+    if ( $file_ext =~ /^\.(pl|PL||pm|t|js|ts|vue|tt|inc)$/ ) {
         $tidy_commands->{$filepath} = tidy_cmd($filepath);
     }
 }
