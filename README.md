@@ -91,6 +91,30 @@ sudo usermod -aG docker ${USER}
 
 Then reboot or restart your session.
 
+## Updating
+
+From time to time (and especially when your local setup does not work anymore) you have to pull new `ktd` containers and/or pull new changes from Koha itself:
+
+```shell
+# update Koha
+cd $PROJECTS_DIR/koha
+git pull
+
+# update koha-testing docker source
+cd $PROJECTS_DIR/koha-testing-docker
+git pull
+
+# update containers
+ktd pull
+
+# remove node_modules
+ktd --shell
+rm -rf node_modules
+
+# restart / reset
+restart_all # or reset_all, which will nuke all data
+```
+
 ## Basic usage
 
 In order to launch _KTD_, you can use the `ktd` wrapper command. It is a wrapper around the
