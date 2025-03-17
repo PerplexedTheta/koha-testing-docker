@@ -170,6 +170,7 @@ ENABLE_PLUGINS="no"
 ENABLE_SELENIUM="no"
 ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
+ENABLE_BUILD_IMAGE="no"
 PERSISTENT_DB="no"
 
 KOHA_ELASTICSEARCH="no"
@@ -251,6 +252,9 @@ while [ $# -gt 0 ]; do
             break ;;
         --localrun)
             ENABLE_LOCAL_RUN_SCRIPT="yes"
+            shift ;;
+        --build)
+            ENABLE_BUILD_IMAGE="yes"
             shift ;;
         -f | --file)
             COMPOSE_FILES+=("$2")
@@ -359,6 +363,15 @@ else
 
             if [ "$PERSISTENT_DB" != "no" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/persistent_db.yml"
+            fi
+
+            if [ "$ENABLE_BUILD_IMAGE" != "no" ]; then
+                if [ -z "${KOHA_IMAGE_OS}" ] && [ "$1" != "down" ]; then
+                    printf "\n\$KOHA_IMAGE_OS not set, but build requested. Please set it correctly and retry\n\n"
+                    exit 1
+                fi
+                export KOHA_IMAGE_OS=${KOHA_IMAGE_OS}
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/build.yml"
             fi
 
             # worktree? need to jump to the koha clone

@@ -1,0 +1,6 @@
+services:
+    koha:
+        image: ""
+        build:
+            context: .
+            dockerfile: dists/${KOHA_IMAGE_OS}/Dockerfile
