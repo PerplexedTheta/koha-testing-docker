@@ -114,8 +114,24 @@ echo "password = ${KOHA_DB_PASSWORD}"   >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 
 # Get rid of Apache warnings
 append_if_absent "ServerName kohadevbox"        /etc/apache2/apache2.conf
-append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
-append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
+
+
+# Seed SSL_Settings
+echo "SSLEngine on"                                                  > /etc/apache2/conf-available/ssl_settings.conf
+echo "SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem"      >> /etc/apache2/conf-available/ssl_settings.conf
+echo "SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key" >> /etc/apache2/conf-available/ssl_settings.conf
+
+# Set listener type
+if [ "${USE_SSL}" = "yes" ]; then
+    a2enmod ssl
+    a2enconf ssl_settings
+    append_if_absent "Listen ${KOHA_INTRANET_PORT} https" /etc/apache2/ports.conf
+    append_if_absent "Listen ${KOHA_OPAC_PORT} https"     /etc/apache2/ports.conf
+else
+    append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
+    append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
+fi
+
 
 # Pull the names of the environment variables to substitute from defaults.env and convert them to a string of the format "$VAR1:$VAR2:$VAR3", etc.
 VARS_TO_SUB=`cut -d '=' -f1 ${BUILD_DIR}/templates/defaults.env  | tr '\n' ':' | sed -e 's/:/:$/g' | awk '{print "$"$1}' | sed -e 's/:\$$//'`
