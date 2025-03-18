@@ -1,0 +1,4 @@
+services:
+    koha:
+        environment:
+            USE_SSL: yes

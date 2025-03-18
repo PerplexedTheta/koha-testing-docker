@@ -29,9 +29,9 @@ This script lets you manage your KTD environment.
 
 Usage:
 
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] up -d
+    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--ssl|--sso|--localrun] up -d
     $scriptname down [instance_name|--all]
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] pull
+    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--ssl|--sso|--localrun] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
     $scriptname --logs
@@ -46,6 +46,7 @@ Options:
     --os2                 Use an OpenSearch 2.x container
     --plugins             Enable plugin development environment
     --selenium            Use a Selenium container
+    --ssl                 Run KTD with self-signed certificate (NOT compatible with proxy)
     --sso                 Use a Keycloak container
     --shell               Get into the Koha container
     --dbshell             Get into the database
@@ -207,6 +208,7 @@ ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
 ENABLE_BUILD_IMAGE="no"
 PERSISTENT_DB="no"
+USE_SSL="no"
 
 KOHA_ELASTICSEARCH="no"
 
@@ -265,6 +267,9 @@ while [ $# -gt 0 ]; do
             shift 2 ;;
         --selenium)
             ENABLE_SELENIUM="yes"
+            shift ;;
+        --ssl)
+            USE_SSL="yes"
             shift ;;
         --sso)
             ENABLE_SSO="yes"
@@ -439,6 +444,10 @@ else
 
             if [ "$PERSISTENT_DB" != "no" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/persistent_db.yml"
+            fi
+
+            if [ "$USE_SSL" != "no" ]; then
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/ssl.yml"
             fi
 
             if [ "$ENABLE_BUILD_IMAGE" != "no" ]; then
