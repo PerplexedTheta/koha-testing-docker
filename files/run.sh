@@ -6,14 +6,21 @@ export BUILD_DIR=/kohadevbox
 export TEMP=/tmp
 
 # Handy variables
+if [ "${USE_SSL}" = "yes" ]; then
+    export KOHA_INTRANET_PROTO=https://
+    export KOHA_OPAC_PROTO=https://
+else
+    export KOHA_INTRANET_PROTO=http://
+    export KOHA_OPAC_PROTO=http://
+fi
 export KOHA_INTRANET_FQDN=${KOHA_INTRANET_PREFIX}${KOHA_INSTANCE}${KOHA_INTRANET_SUFFIX}${KOHA_DOMAIN}
 export KOHA_OPAC_FQDN=${KOHA_OPAC_PREFIX}${KOHA_INSTANCE}${KOHA_OPAC_SUFFIX}${KOHA_DOMAIN}
 
 if [ -z ${KOHA_OPAC_URL} ]; then
-    export KOHA_OPAC_URL=http://${KOHA_OPAC_FQDN}:${KOHA_OPAC_PORT}
+    export KOHA_OPAC_URL=${KOHA_OPAC_PROTO}${KOHA_OPAC_FQDN}:${KOHA_OPAC_PORT}
 fi
 if [ -z ${KOHA_INTRANET_URL} ]; then
-    export KOHA_INTRANET_URL=http://${KOHA_INTRANET_FQDN}:${KOHA_INTRANET_PORT}
+    export KOHA_INTRANET_URL=${KOHA_INTRANET_PROTO}${KOHA_INTRANET_FQDN}:${KOHA_INTRANET_PORT}
 fi
 
 export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadevbox/node_modules/.bin/
@@ -119,8 +126,24 @@ echo "password = ${KOHA_DB_PASSWORD}"   >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 
 # Get rid of Apache warnings
 append_if_absent "ServerName kohadevbox"        /etc/apache2/apache2.conf
-append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
-append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
+
+
+# Seed SSL_Settings
+echo "SSLEngine on"                                                  > /etc/apache2/conf-available/ssl_settings.conf
+echo "SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem"      >> /etc/apache2/conf-available/ssl_settings.conf
+echo "SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key" >> /etc/apache2/conf-available/ssl_settings.conf
+
+# Set listener type
+if [ "${USE_SSL}" = "yes" ]; then
+    a2enmod ssl
+    a2enconf ssl_settings
+    append_if_absent "Listen ${KOHA_INTRANET_PORT} https" /etc/apache2/ports.conf
+    append_if_absent "Listen ${KOHA_OPAC_PORT} https"     /etc/apache2/ports.conf
+else
+    append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
+    append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
+fi
+
 
 # Pull the names of the environment variables to substitute from defaults.env and convert them to a string of the format "$VAR1:$VAR2:$VAR3", etc.
 VARS_TO_SUB=`cut -d '=' -f1 ${BUILD_DIR}/templates/defaults.env  | tr '\n' ':' | sed -e 's/:/:$/g' | awk '{print "$"$1}' | sed -e 's/:\$$//'`
