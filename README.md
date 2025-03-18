@@ -372,6 +372,20 @@ ktd <options> up -d
 where `<options>` are the valid `ktd` option switches. If your usage requires more options you should
 check `docker compose --help` or refer to the [Docker compose documentation](https://docs.docker.com/compose/).
 
+### Building locally
+
+If you want to test changes to one of the Docker images, `ktd` offers a `--build` parameter that can be
+passed so it builds the required image and uses, instead of pulling it from the Docker registry. It can be
+used like this:
+
+```shell
+KOHA_IMAGE_OS=arm64v8/bookworm ktd --proxy --name test_arm --build up
+KOHA_IMAGE_OS=noble ktd --proxy --name test_noble --build up
+```
+
+Building the images, manually, can be straight-forward by reading the `.gitlab-ci` file. We ship different
+`Dockerfiles` that can just be built in traditional ways.
+
 ### Developing plugins using ktd
 
 _KTD_ ships with some nice tools for working with plugins
