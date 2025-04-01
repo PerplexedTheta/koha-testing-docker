@@ -421,15 +421,27 @@ You can also add `DEV_INSTALL` and `KOHA_HOME` to your `.env` file so you don't 
 
 Translation files (.po files) have been removed from [the docker container](https://gitlab.com/koha-community/koha-testing-docker/-/issues/386) and [the Koha codebase](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=35174).
 
-When _KTD_ container starts up, it will deal with the .po files if needed, depending on the state of misc/translator/po
+When _KTD_ container starts up, it will deal with the .po files if needed, depending on the state of `misc/translator/po` and the value of `SKIP_L10N` (defaults to `no`).
 
- 1. If empty [koha-l10n](https://gitlab.com/koha-community/koha-l10n) will be cloned
- 2. If exists and is a git repository, koha-l10n will be pulled and the corresponding branch will be checked out (if there is no changes!)
- 3. If exists and is not a git repository, nothing is done (we are on a branch prior to the removal)
+ 1. If `SKIP_L10N=yes`, nothing is done. No translations are installed, which saves a lot of bandwidth and file storage.
+ 1. If `misc/translator/po` is empty, [koha-l10n](https://gitlab.com/koha-community/koha-l10n) will be cloned
+ 2. If `misc/translator/po` exists and is a git repository, koha-l10n will be pulled and the corresponding branch will be checked out (if there are no local changes!)
+ 3. If `misc/translator/po` exists and is not a git repository, nothing is done (we are on a branch prior to the removal)
 
 Note that _KTD_ will not automatically remove changes that have been made to the .po files.
 
+### Installing translations
+
+Use `koha-translate` with the option `--dev kohadev`.
+
+```shell
+# in a koha-shell
+koha-translate --install de-DE --dev kohadev
+```
+
 ### Update the files
+
+This will only work if `misc/translator/po` actually is a checkout of koha-l10n.
 
 #### Fetch new translations
 
@@ -438,6 +450,7 @@ To manually fetch new translations from koha-l10n (and so Weblate) you can fetch
 For main:
 
 ```shell
+# in a koha-shell
 cd misc/translator/po
 git fetch origin
 git reset --hard origin/main
