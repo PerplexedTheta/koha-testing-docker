@@ -58,6 +58,7 @@ Options:
     --localrun            Start the container with local run.sh file
     --file|-f             Compose configuration files
     --logs                Follow the koha container logs
+    --list                Print the list of running KTD instances
     --help|-h             Display this help message
 
 Environment variables:
@@ -181,6 +182,7 @@ ROOT_ACCESS="no"
 RUN=""
 SHELL_ACCESS="no"
 DBSHELL_ACCESS="no"
+LIST_INSTANCES="no"
 
 COMPOSE_FILES=()
 
@@ -256,6 +258,9 @@ while [ $# -gt 0 ]; do
         --build)
             ENABLE_BUILD_IMAGE="yes"
             shift ;;
+        --list)
+            LIST_INSTANCES="yes";
+            break ;;
         -f | --file)
             COMPOSE_FILES+=("$2")
             shift 2
@@ -270,6 +275,11 @@ while [ $# -gt 0 ]; do
     esac
 
 done
+
+if [ "$LIST_INSTANCES" != "no" ]; then
+    docker ps --format '{{.Names}}' | cut -d'_' -f1 | sort -u | grep -e 'koha-1$' | cut -d'-' -f1
+    exit 0
+fi
 
 if [ "${KOHA_INSTANCE}" = "" ]; then
     KOHA_INSTANCE=kohadev
