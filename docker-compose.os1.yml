@@ -4,8 +4,8 @@ services:
         environment:
             cluster.name: docker-cluster
             discovery.type: single-node
-            bootstrap.memory_lock: true
-            plugins.security.disabled: true
+            bootstrap.memory_lock: "true"
+            plugins.security.disabled: "true"
             ES_JAVA_OPTS: "-Xms512m -Xmx512m"
             OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-pu1kohphei4heeY4pai7ohp6vei4Ea6i}
         ulimits:
