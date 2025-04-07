@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 set -e
 
 usage()
@@ -31,7 +30,7 @@ This script lets you manage your KTD environment.
 Usage:
 
     $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] up -d
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] down
+    $scriptname down [instance_name|--all]
     $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
@@ -71,6 +70,37 @@ Note: --es6, --es7, --es8, --os1 and --os2 are mutually exclussive.
 EOF
 }
 
+# Add handle_down_command function here, before it's used
+handle_down_command() {
+    local instance=$1
+    
+    if [ "$instance" = "--all" ]; then
+        # Get all instance names and bring them down
+        docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | sort -u | \
+        while read project; do
+            if [ -n "$project" ]; then
+                echo "Bringing down project: $project"
+                "$DOCKER_BINARY" compose -p "$project" down
+                echo
+            fi
+        done
+    elif [ -n "$instance" ]; then
+        # Bring down specific instance
+        if docker ps -a --format '{{.Names}}' | grep -q "${instance}-koha-1"; then
+            echo "Bringing down project: $instance"
+            container_count=$(docker ps -a --format '{{.Names}}' | grep "^${instance}-" | wc -l)
+            "$DOCKER_BINARY" compose -p "$instance" down
+        else
+            echo "Error: Instance '$instance' not found"
+            exit 1
+        fi
+    else
+        # Default behavior - bring down current instance
+        echo "Bringing down project: ${PROJECT_NAME}"
+        container_count=$(docker ps -a --format '{{.Names}}' | grep "^${PROJECT_NAME}-" | wc -l)
+        "$DOCKER_BINARY" compose -p ${PROJECT_NAME} down
+    fi
+}
 
 set_docker()
 {
@@ -265,6 +295,9 @@ while [ $# -gt 0 ]; do
             COMPOSE_FILES+=("$2")
             shift 2
             ;;
+        down)
+            handle_down_command "$2"
+            exit 0 ;;
         -*)
             printf "\nError: expected a docker compose action and got '$1' instead\n\n"
             usage
@@ -277,7 +310,36 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$LIST_INSTANCES" != "no" ]; then
-    docker ps --format '{{.Names}}' | cut -d'_' -f1 | sort -u | grep -e 'koha-1$' | cut -d'-' -f1
+    # Define colors where we need them
+    GREEN='\033[0;32m'
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+
+    # Helper function to format and display instances
+    display_instances() {
+        local status=$1
+        local color=$2
+        docker ps $3 --format '{{.Names}} {{.Status}}' | grep 'koha-1' | \
+        while read line; do
+            name=$(echo $line | cut -d' ' -f1 | sed 's/-koha-1//')
+            status=$(echo $line | cut -d' ' -f2-)
+            printf "%-${max_len}s  [${color}%s${NC}]\n" "$name" "$status"
+        done | sort
+    }
+
+    # Get max length for formatting
+    max_len=$(docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | awk '{ print length }' | sort -nr | head -1)
+    
+    # Print header
+    printf "%-${max_len}s  %s\n" "INSTANCE" "STATUS"
+    printf "%-${max_len}s  %s\n" "$(printf '%0.s-' $(seq 1 $max_len))" "---------------"
+    
+    # Display running instances first, then stopped ones
+    (
+        display_instances "running" "${GREEN}" ""
+        display_instances "stopped" "${RED}" "-f status=exited"
+    )
+
     exit 0
 fi
 
