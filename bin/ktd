@@ -55,6 +55,7 @@ Options:
     --proxy               Use the proxied version of the compose file
     --name                Sets the project name
     --localrun            Start the container with local run.sh file
+    --local-db            Bind MySQL/MariaDB to localhost (useful for Cypress tests)
     --file|-f             Compose configuration files
     --logs                Follow the koha container logs
     --list                Print the list of running KTD instances
@@ -209,6 +210,7 @@ ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
 ENABLE_BUILD_IMAGE="no"
 PERSISTENT_DB="no"
+BIND_LOCAL_DB="no"
 
 KOHA_ELASTICSEARCH="no"
 
@@ -296,6 +298,9 @@ while [ $# -gt 0 ]; do
         --list)
             LIST_INSTANCES="yes";
             break ;;
+        --local-db)
+            BIND_LOCAL_DB="yes"
+            shift ;;
         -f | --file)
             COMPOSE_FILES+=("$2")
             shift 2
@@ -456,6 +461,9 @@ else
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/build.yml"
             fi
 
+            if [ "$BIND_LOCAL_DB" != "no" ]; then
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/local_db.yml"
+            fi
             # worktree? need to jump to the koha clone
             cd ${SYNC_REPO}
             if [ "$(git rev-parse --git-dir)" != ".git" ]; then
