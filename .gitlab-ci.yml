@@ -11,6 +11,9 @@ variables:
   DOCKER_DRIVER: overlay2
   FF_NETWORK_PER_BUILD: 1
 
+before_script:
+  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+
 #sid:
 #  stage: build
 #  script:
@@ -24,7 +27,6 @@ variables:
 trixie:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-trixie --no-cache --rm -f dists/trixie/Dockerfile .
   - docker push koha/koha-testing:25.05-trixie
   - docker image rm koha/koha-testing:25.05-trixie
@@ -34,7 +36,6 @@ trixie:
 bookworm:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-bookworm --no-cache --rm -f dists/bookworm/Dockerfile .
   - docker push koha/koha-testing:25.05-bookworm
   - docker tag  koha/koha-testing:25.05-bookworm koha/koha-testing:25.05
@@ -46,7 +47,6 @@ bookworm:
 bullseye:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-bullseye --no-cache --rm -f dists/bullseye/Dockerfile .
   - docker push koha/koha-testing:25.05-bullseye
   - docker image rm koha/koha-testing:25.05-bullseye
@@ -56,7 +56,6 @@ bullseye:
 buster:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-buster --no-cache --rm -f dists/buster/Dockerfile .
   - docker push koha/koha-testing:25.05-buster
   - docker image rm koha/koha-testing:25.05-buster
@@ -66,7 +65,6 @@ buster:
 focal:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-focal --no-cache --rm -f dists/focal/Dockerfile .
   - docker push koha/koha-testing:25.05-focal
   - docker image rm koha/koha-testing:25.05-focal
@@ -76,7 +74,6 @@ focal:
 jammy:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-jammy --no-cache --rm -f dists/jammy/Dockerfile .
   - docker push koha/koha-testing:25.05-jammy
   - docker image rm koha/koha-testing:25.05-jammy
@@ -86,7 +83,6 @@ jammy:
 noble:
   stage: build
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-noble --no-cache --rm -f dists/noble/Dockerfile .
   - docker push koha/koha-testing:25.05-noble
   - docker image rm koha/koha-testing:25.05-noble
@@ -104,7 +100,6 @@ bullseye-arm64v8:
   tags:
     - saas-linux-medium-arm64
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-bullseye-arm64v8 --no-cache --rm -f dists/arm64v8/bullseye/Dockerfile .
   - docker push koha/koha-testing:25.05-bullseye-arm64v8
   - docker image rm koha/koha-testing:25.05-bullseye-arm64v8
@@ -119,7 +114,6 @@ bookworm-arm64v8:
   tags:
     - saas-linux-medium-arm64
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-bookworm-arm64v8 --no-cache --rm -f dists/arm64v8/bookworm/Dockerfile .
   - docker push koha/koha-testing:25.05-bookworm-arm64v8
   - docker image rm koha/koha-testing:25.05-bookworm-arm64v8
@@ -134,7 +128,6 @@ focal-arm64v8:
   tags:
     - saas-linux-medium-arm64
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
   - docker push koha/koha-testing:25.05-focal-arm64v8
   - docker image rm koha/koha-testing:25.05-focal-arm64v8
@@ -149,7 +142,6 @@ noble-arm64v8:
   tags:
     - saas-linux-medium-arm64
   script:
-  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
   - docker build -t koha/koha-testing:25.05-noble-arm64v8 --no-cache --rm -f dists/arm64v8/noble/Dockerfile .
   - docker push koha/koha-testing:25.05-noble-arm64v8
   - docker image rm koha/koha-testing:25.05-noble-arm64v8
