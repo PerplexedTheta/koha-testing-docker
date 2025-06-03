@@ -166,6 +166,10 @@ set_image()
         # if main, then explicitly set to main-bookworm
         if [ "$KOHA_IMAGE" == "main" ] || [ -z "${KOHA_IMAGE}" ] ; then
             export KOHA_IMAGE="main-bookworm-arm64v8"
+        elif [ "$KOHA_IMAGE" == "25.05" ] ; then
+            export KOHA_IMAGE="25.05-bookworm-arm64v8"
+        elif [ "$KOHA_IMAGE" == "24.11" ] ; then
+            export KOHA_IMAGE="24.11-bookworm-arm64v8"
         fi
 
         # tweak used memcached image
