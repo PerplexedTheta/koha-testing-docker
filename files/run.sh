@@ -89,6 +89,11 @@ if [ "${DEBUG_GIT_REPO_MISC4DEV}" = "yes" ]; then
     git clone -b ${DEBUG_GIT_REPO_MISC4DEV_BRANCH} ${DEBUG_GIT_REPO_MISC4DEV_URL} ${BUILD_DIR}/misc4dev
 fi
 
+if [ "${DEBUG_GIT_REPO_QATESTTOOLS}" = "yes" ]; then
+    rm -rf ${BUILD_DIR}/qa-test-tools
+    git clone -b ${DEBUG_GIT_REPO_QATESTTOOLS_BRANCH} ${DEBUG_GIT_REPO_QATESTTOOLS_URL} ${BUILD_DIR}/qa-test-tools
+fi
+
 # Make sure we use the files from the git clone for creating the instance
 perl ${BUILD_DIR}/misc4dev/cp_debian_files.pl \
             --instance          ${KOHA_INSTANCE} \
@@ -181,6 +186,9 @@ if [[ ! -z "${LOCAL_USER_ID}" && "${LOCAL_USER_ID}" != "1000" ]]; then
     chown -R "${KOHA_INSTANCE}-koha" "/var/lock/koha/${KOHA_INSTANCE}"
     chown -R "${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}"
     chown -R "${KOHA_INSTANCE}-koha" "/var/run/koha/${KOHA_INSTANCE}"
+    chown -R "${KOHA_INSTANCE}-koha" ${BUILD_DIR}/misc4dev
+    chown -R "${KOHA_INSTANCE}-koha" ${BUILD_DIR}/gitify
+    chown -R "${KOHA_INSTANCE}-koha" ${BUILD_DIR}/qa-test-tools
 fi
 
 if [[ ${SKIP_L10N} != "yes" ]]; then
@@ -281,11 +289,6 @@ echo "127.0.0.1    ${KOHA_OPAC_FQDN} ${KOHA_INTRANET_FQDN}" >> /etc/hosts
 
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/instance_bashrc > /var/lib/koha/${KOHA_INSTANCE}/.bashrc
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bash_aliases    > /var/lib/koha/${KOHA_INSTANCE}/.bash_aliases
-
-if [ "${DEBUG_GIT_REPO_QATESTTOOLS}" = "yes" ]; then
-    rm -rf ${BUILD_DIR}/qa-test-tools
-    git clone -b ${DEBUG_GIT_REPO_QATESTTOOLS_BRANCH} ${DEBUG_GIT_REPO_QATESTTOOLS_URL} ${BUILD_DIR}/qa-test-tools
-fi
 
 if [ "${KOHA_ELASTICSEARCH}" = "yes" ]; then
     ES_FLAG="--elasticsearch"

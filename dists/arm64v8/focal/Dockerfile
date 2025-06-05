@@ -144,7 +144,10 @@ RUN cd /usr/local/share \
 RUN cd /kohadevbox \
     && git clone https://gitlab.com/koha-community/koha-misc4dev.git   misc4dev \
     && git clone https://gitlab.com/koha-community/koha-gitify.git     gitify \
-    && git clone https://gitlab.com/koha-community/qa-test-tools.git   qa-test-tools
+    && git clone https://gitlab.com/koha-community/qa-test-tools.git   qa-test-tools \
+    && chown -R 1000 misc4dev \
+                     gitify \
+                     qa-test-tools
 
 # How-to
 RUN cd /kohadevbox \
