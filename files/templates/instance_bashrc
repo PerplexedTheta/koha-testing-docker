@@ -67,7 +67,7 @@ function qa(){
     local koha_repo="/kohadevbox/koha"
     local qa_repo="/kohadevbox/qa-test-tools"
     local starting_tag="v25.05.00-1"
-    if git -C "$koha_repo" merge-base --is_ancestor "$starting_tag" HEAD >/dev/null 2>&1; then
+    if git -C "$koha_repo" merge-base --is-ancestor "$starting_tag" HEAD >/dev/null 2>&1; then
         echo "Tag $starting_tag found in $koha_repo — checking out branch main in $qa_repo"
         git -C "$qa_repo" checkout main
         /kohadevbox/qa-test-tools/koha-qa.pl -v 2 "$@"
