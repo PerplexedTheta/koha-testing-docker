@@ -7,9 +7,6 @@ alias prove_debug='PERL5LIB="/kohadevbox/dbgp":$PERL5LIB \
 
 alias run_cypress='yarn cypress run --env KOHA_USER=${KOHA_USER},KOHA_PASS=${KOHA_PASS}'
 
-# Alias for the Koha QA tool
-alias qa="/kohadevbox/qa-test-tools/koha-qa.pl -v 2 --failures"
-
 #!/usr/bin/bash
 
 export LANGUAGE='en_US.UTF-8'
@@ -63,4 +60,20 @@ function restart_all(){
 # function for running updatedatabase.pl
 function updatedatabase(){
     sudo koha-shell ${KOHA_INSTANCE} -p -c 'perl /kohadevbox/koha/installer/data/mysql/updatedatabase.pl'
+}
+
+# function for the Koha QA tool
+function qa(){
+    local koha_repo="/kohadevbox/koha"
+    local qa_repo="/kohadevbox/qa-test-tools"
+    local starting_tag="v25.05.00-1"
+    if git -C "$koha_repo" merge-base --is_ancestor "$starting_tag" HEAD >/dev/null 2>&1; then
+        echo "Tag $starting_tag found in $koha_repo — checking out branch main in $qa_repo"
+        git -C "$qa_repo" checkout main
+        /kohadevbox/qa-test-tools/koha-qa.pl -v 2 "$@"
+    else
+        echo "Tag $starting_tag not found in $koha_repo — checking out branch v1.9.9 in $qa_repo"
+        git -C "$qa_repo" checkout v1.9.9
+        /kohadevbox/qa-test-tools/koha-qa.pl -v 2 --failures "$@"
+    fi
 }
