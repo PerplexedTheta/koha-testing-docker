@@ -1,6 +1,6 @@
 services:
   proxy:
-    image: traefik:v3.3
+    image: traefik:v3.4
     restart: always
     command:
       - "--api.insecure=true" # Enable the Traefik dashboard without authentication
