@@ -10,10 +10,11 @@ my $env_vars = {
     COVERAGE           => $ENV{COVERAGE},
     KOHA_IMAGE         => $ENV{KOHA_IMAGE} || 'main',
     KTD_BRANCH         => $ENV{KTD_BRANCH} || 'main',
-    TEST_SUITE         => $ENV{TEST_SUITE} // 'full',
+    TEST_SUITE         => $ENV{TEST_SUITE}      // 'full',
     TEST_DB_UPGRADE    => $ENV{TEST_DB_UPGRADE} // 'no',
+    DB_IMAGE           => $ENV{DB_IMAGE} || '',
     DBMS_YML           => $ENV{DBMS_YML} || '',
-    ES_YML             => $ENV{ES_YML} || '',
+    ES_YML             => $ENV{ES_YML}   || '',
 };
 while ( my ( $var, $value ) = each %$env_vars ) {
     $ENV{$var} = $value;
@@ -39,6 +40,7 @@ if ( $ENV{TEST_SUITE} eq 'full' || $ENV{TEST_SUITE} eq 'selenium-only' || $ENV{T
 if ( $ENV{TEST_SUITE} eq 'full' || $ENV{TEST_SUITE} eq 'es-only' || $ENV{ES_YML} ) {
 
     unless ( $ENV{ES_YML} ) {
+
         # Fallback to default
         $ENV{ES_YML} = 'docker-compose.es7.yml';
     }
@@ -46,46 +48,48 @@ if ( $ENV{TEST_SUITE} eq 'full' || $ENV{TEST_SUITE} eq 'es-only' || $ENV{ES_YML}
     push @docker_compose_yml, $ENV{ES_YML};
 }
 
-if ( $ENV{DBMS_YML} ) {
-    push @docker_compose_yml, $ENV{DBMS_YML};
-} else {
-    if (      $ENV{KOHA_IMAGE} =~ m|stretch| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_d9.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|buster| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_d10.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|bullseye| || $ENV{KOHA_IMAGE} eq 'main' ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_d11.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|bookworm| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_d12.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|bionic| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_u18.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|focal| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_u20.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|jammy| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_u22.yml';
-    } elsif ( $ENV{KOHA_IMAGE} =~ m|sid| ) {
-        push @docker_compose_yml, 'docker-compose.mariadb_latest.yml';
+unless ( $ENV{DB_IMAGE} ) {
+    if ( $ENV{DBMS_YML} ) {
+        push @docker_compose_yml, $ENV{DBMS_YML};
+    } else {
+        if ( $ENV{KOHA_IMAGE} =~ m|stretch| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_d9.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|buster| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_d10.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|bullseye| || $ENV{KOHA_IMAGE} eq 'main' ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_d11.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|bookworm| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_d12.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|bionic| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_u18.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|focal| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_u20.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|jammy| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_u22.yml';
+        } elsif ( $ENV{KOHA_IMAGE} =~ m|sid| ) {
+            push @docker_compose_yml, 'docker-compose.mariadb_latest.yml';
+        }
     }
 }
 
-for my $yml ( @docker_compose_yml ) {
-    run(qq{wget -O $yml $GITLAB_RAW_URL/$yml}, { exit_on_error => 1 });
+for my $yml (@docker_compose_yml) {
+    run( qq{wget -O $yml $GITLAB_RAW_URL/$yml}, { exit_on_error => 1 } );
 }
 
 my $docker_compose_env = "$GITLAB_RAW_URL/env/defaults.env";
-run(qq{wget -O .env $docker_compose_env}, { exit_on_error => 1 });
+run( qq{wget -O .env $docker_compose_env}, { exit_on_error => 1 } );
 
 docker_cleanup();
 
 my $cmd = 'docker-compose ' . join( ' ', map { "-f $_" } @docker_compose_yml ) . ' pull --quiet';
-run($cmd, { exit_on_error => 1 });
+run( $cmd, { exit_on_error => 1 } );
 
 # Run tests
 $cmd =
-    'docker-compose '
-  . join( ' ', map { "-f $_" } @docker_compose_yml )
-  . ' -p koha up --abort-on-container-exit --no-color --force-recreate';
-run($cmd, { exit_on_error => 1, use_pipe => 1 });
+      'docker-compose '
+    . join( ' ', map { "-f $_" } @docker_compose_yml )
+    . ' -p koha up --abort-on-container-exit --no-color --force-recreate';
+run( $cmd, { exit_on_error => 1, use_pipe => 1 } );
 
 # Post cleanup
 docker_cleanup();
@@ -97,18 +101,18 @@ sub run {
     my ( $cmd, $params ) = @_;
     my $exit_on_error = $params->{exit_on_error};
     my $use_pipe      = $params->{use_pipe};
-    if ( $use_pipe ) {
+    if ($use_pipe) {
         $cmd .= " 2>&1";
         my $fh;
-        if ( $exit_on_error ) {
-            open($fh, '-|', $cmd) or die "Failed to execute: $cmd ($!)";
+        if ($exit_on_error) {
+            open( $fh, '-|', $cmd ) or die "Failed to execute: $cmd ($!)";
         } else {
-            open($fh, '-|', $cmd);
+            open( $fh, '-|', $cmd );
             if ($!) { warn "Failed to execute: $cmd ($!)"; return; }
         }
-        while (my $line = <$fh>) { print $line }
+        while ( my $line = <$fh> ) { print $line }
     } else {
-        if ( $exit_on_error ) {
+        if ($exit_on_error) {
             print qx{$cmd} . "\n" or die "Failed to execute $cmd";
         } else {
             print qx{$cmd} . "\n";
@@ -117,13 +121,11 @@ sub run {
 }
 
 sub docker_cleanup {
-    run(    q{docker-compose }
-          . join( ' ', map { "-f $_" } @docker_compose_yml )
-          . q{ -p koha down} );
+    run( q{docker-compose } . join( ' ', map { "-f $_" } @docker_compose_yml ) . q{ -p koha down} );
 
     my $containers = qx{docker ps -a -f "name=koha_xx" -q};
     chomp $containers;
-    if ( $containers ) {
+    if ($containers) {
         run(qq{docker stop \$(docker ps -a -f "name=koha_" -q)});
         run(qq{docker rm \$(docker ps -a -f "name=koha_" -q)});
     }
@@ -133,5 +135,5 @@ sub docker_cleanup {
     run(q{docker network prune   -f});
 
     my $nb_days = $ENV{JENKINS_NODE_KEEP_DOCKER_NB_DAYS};
-    run(q{docker image prune -a -f} . ( $nb_days ? sprintf q{--filter until=%sd}, $nb_days : q{} ));
+    run( q{docker image prune -a -f} . ( $nb_days ? sprintf q{--filter until=%sd}, $nb_days : q{} ) );
 }
