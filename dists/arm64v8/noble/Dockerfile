@@ -47,6 +47,7 @@ RUN apt-get -y update \
 # Set locales
 RUN    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && echo "fr_FR.UTF-8 UTF-8" >> /etc/locale.gen \
+    && echo "fi_FI.UTF-8 UTF-8" >> /etc/locale.gen \
     && locale-gen \
     && dpkg-reconfigure locales \
     && /usr/sbin/update-locale LANG=en_US.UTF-8
