@@ -136,8 +136,8 @@ sub perl_valid_cmd {
         sh -c '
             output=$(/usr/bin/perl -wc %s 2>&1);
             perl_exit=$?;
-            filtered=$(echo "$output" | grep -Pv "^(Subroutine \\w+ redefined at |.* syntax OK\$)" || true);
-            echo "$output" | grep -Pv "^Subroutine \\w+ redefined at " || true;
+            filtered=$(echo "$output" | grep -Pv "^(Subroutine \\w+ redefined at |Constant subroutine (\\w|:)+ redefined at |.* syntax OK\$)" || true);
+            echo "$output" | grep -Pv "^(Subroutine \\w+ redefined at |Constant subroutine (\\w|:)+ redefined at )" || true;
             if [ $perl_exit -ne 0 ] || [ -n "$filtered" ]; then exit 255; else exit 0; fi
         '
     }, $filepath;
