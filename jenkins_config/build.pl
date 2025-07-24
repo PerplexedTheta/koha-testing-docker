@@ -81,12 +81,12 @@ run( qq{wget -O .env $docker_compose_env}, { exit_on_error => 1 } );
 
 docker_cleanup();
 
-my $cmd = 'docker-compose ' . join( ' ', map { "-f $_" } @docker_compose_yml ) . ' pull --quiet';
+my $cmd = 'docker compose ' . join( ' ', map { "-f $_" } @docker_compose_yml ) . ' pull --quiet';
 run( $cmd, { exit_on_error => 1 } );
 
 # Run tests
 $cmd =
-      'docker-compose '
+      'docker compose '
     . join( ' ', map { "-f $_" } @docker_compose_yml )
     . ' -p koha up --abort-on-container-exit --no-color --force-recreate';
 run( $cmd, { exit_on_error => 1, use_pipe => 1 } );
@@ -121,7 +121,7 @@ sub run {
 }
 
 sub docker_cleanup {
-    run( q{docker-compose } . join( ' ', map { "-f $_" } @docker_compose_yml ) . q{ -p koha down} );
+    run( q{docker compose } . join( ' ', map { "-f $_" } @docker_compose_yml ) . q{ -p koha down} );
 
     my $containers = qx{docker ps -a -f "name=koha_xx" -q};
     chomp $containers;
