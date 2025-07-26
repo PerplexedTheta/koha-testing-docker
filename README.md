@@ -62,6 +62,7 @@ git clone https://git.koha-community.org/Koha-community/Koha.git koha
 
 * Set some **mandatory** environment variables:
 
+For bash users:
 ```shell
 echo "export PROJECTS_DIR=$PROJECTS_DIR" >> ~/.bashrc
 echo 'export SYNC_REPO=$PROJECTS_DIR/koha' >> ~/.bashrc
@@ -70,10 +71,25 @@ echo 'export PATH=$PATH:$KTD_HOME/bin' >> ~/.bashrc
 echo 'export LOCAL_USER_ID=$(id -u)' >> ~/.bashrc
 ```
 
+For zsh users:
+```shell
+echo "export PROJECTS_DIR=$PROJECTS_DIR" >> ~/.zshenv
+echo 'export SYNC_REPO=$PROJECTS_DIR/koha' >> ~/.zshenv
+echo 'export KTD_HOME=$PROJECTS_DIR/koha-testing-docker' >> ~/.zshenv
+echo 'export PATH=$PATH:$KTD_HOME/bin' >> ~/.zshenv
+echo 'export LOCAL_USER_ID=$(id -u)' >> ~/.zshenv
+```
+
 For this to take effect on your current terminal, run:
 
+For bash:
 ```shell
 source ~/.bashrc
+```
+
+For zsh:
+```shell
+source ~/.zshenv
 ```
 
 * Generate your personal _.env_ file:
