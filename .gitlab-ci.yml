@@ -43,7 +43,7 @@ bullseye:
   only:
     - 24.11@koha-community/koha-testing-docker
 
-buster:
+buster [retired]:
   stage: build
   script:
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
@@ -52,6 +52,8 @@ buster:
     - docker image rm koha/koha-testing:24.11-buster
   only:
     - 24.11@koha-community/koha-testing-docker
+  rules:
+    - when: never
 
 focal:
   stage: build
