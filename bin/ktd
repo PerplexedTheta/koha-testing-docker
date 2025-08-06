@@ -279,7 +279,6 @@ while [ $# -gt 0 ]; do
             SHELL_ACCESS="yes"
             shift ;;
         --dbshell)
-            SHELL_ACCESS="yes"
             DBSHELL_ACCESS="yes"
             shift ;;
         --wait-ready)
@@ -378,15 +377,20 @@ fi
 
 if [ "$SHELL_ACCESS" != "no" ]; then
 
+    SHELL_USER="--user ${KOHA_INSTANCE}-koha"
+
     if [ "$ROOT_ACCESS" != "no" ]; then
-        "$DOCKER_BINARY" exec -it ${PROJECT_NAME}-koha-1 bash
-    elif [ "$DBSHELL_ACCESS" != "no" ]; then
-        "$DOCKER_BINARY" exec -it ${PROJECT_NAME}-db-1 mysql -u koha_kohadev -ppassword koha_kohadev
-    elif [ "$RUN" != "" ]; then
-        "$DOCKER_BINARY" exec -it ${PROJECT_NAME}-koha-1 bash -c "${RUN}"
-    else
-        "$DOCKER_BINARY" exec --user ${KOHA_INSTANCE}-koha --workdir /kohadevbox/koha -ti ${PROJECT_NAME}-koha-1 bash
+        SHELL_USER=""
     fi
+
+    if [ "$RUN" != "" ]; then
+        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha -it ${PROJECT_NAME}-koha-1 bash -c "${RUN}"
+    else
+        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha -ti ${PROJECT_NAME}-koha-1 bash
+    fi
+
+elif [ "$DBSHELL_ACCESS" != "no" ]; then
+    "$DOCKER_BINARY" exec -it ${PROJECT_NAME}-db-1 mysql -u koha_kohadev -ppassword koha_kohadev
 elif [ "$FOLLOW_LOGS" != "no" ]; then
 
     "$DOCKER_BINARY" logs -f ${PROJECT_NAME}-koha-1
