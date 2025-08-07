@@ -36,6 +36,7 @@ services:
             SKIP_CYPRESS_CHOWN: ${SKIP_CYPRESS_CHOWN:-no}
             SKIP_L10N: ${SKIP_L10N:-no}
             KOHA_IMAGE: ${KOHA_IMAGE:-main}
+            KOHA_MARC_FLAVOUR: ${KOHA_MARC_FLAVOUR:-marc21}
         ulimits:
             nofile:
                 soft: 65536
