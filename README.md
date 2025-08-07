@@ -354,6 +354,27 @@ correct directory on your machine, and that you are in the correct branch
 there. Please also note that the Koha sources are installed to
 `/kohadevbox/koha` (via `koha-gitify`) and not `/usr/share/koha`!
 
+## Choosing a MARC flavour
+
+The default behaviour when you launch _KTD_ is to start up a Koha instance
+configured for the MARC21 flavour. If you wish to work on a UNIMARC-capable
+Koha instance, you can do so by setting the `KOHA_MARC_FLAVOUR` environment
+variable before starting the container with `ktd`:
+
+```shell
+KOHA_MARC_FLAVOUR=unimarc ktd up
+```
+
+You can even launch two Koha containers in parallel using Proxied `KTD`, one
+for each MARC flavour (for example, when you want to follow a Test plan from
+a Bug that involves testing both MARC21 and UNIMARC):
+
+```shell
+ktd_proxy --start
+KOHA_MARC_FLAVOUR=marc21 ktd --proxy --name marc21 up
+KOHA_MARC_FLAVOUR=unimarc ktd --proxy --name unimarc up
+```
+
 ## Advanced usage
 
 ### Docker parameters
