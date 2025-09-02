@@ -28,7 +28,6 @@ if [ "${DEBUG_RUN}" = "yes" ]; then
     exit
 fi
 
-
 # Set a fixed hostname
 echo "kohadevbox" > /etc/hostname
 
@@ -50,6 +49,17 @@ fi
 # Install everything in Koha's cpanfile, may include libs for extra patches being tested
 if [ "${INSTALL_MISSING_FROM_CPANFILE}" = "yes" ]; then
     cpanm --skip-installed --installdeps ${BUILD_DIR}/koha/
+fi
+
+if [[ ! -z "${EXTRA_APT}" ]]; then
+    echo "Installing requested packages using apt: ${EXTRA_APT}"
+    apt update
+    apt install -y ${EXTRA_APT}
+fi
+
+if [[ ! -z "${EXTRA_CPAN}" ]]; then
+    echo "Installing requested Perl libraries: ${EXTRA_CPAN}"
+    cpanm --skip-installed ${EXTRA_CPAN}
 fi
 
 append_if_absent()

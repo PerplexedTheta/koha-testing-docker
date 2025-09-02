@@ -26,6 +26,8 @@ services:
         environment:
             COVERAGE: ${COVERAGE}
             CPAN: ${CPAN:-no}
+            EXTRA_CPAN: ${EXTRA_CPAN:-""}
+            EXTRA_APT: ${EXTRA_APT:-""}
             RUN_TESTS_AND_EXIT: ${RUN_TESTS_AND_EXIT}
             LOCAL_USER_ID: ${LOCAL_USER_ID}
             TEST_SUITE: ${TEST_SUITE:-light}
