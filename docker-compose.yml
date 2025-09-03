@@ -76,4 +76,6 @@ services:
 
 networks:
     kohanet:
+        enable_ipv4: ${ENABLE_IPV4:-true}
+        enable_ipv6: ${ENABLE_IPV6:-false}
 
