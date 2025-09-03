@@ -51,13 +51,13 @@ if [ "${INSTALL_MISSING_FROM_CPANFILE}" = "yes" ]; then
     cpanm --skip-installed --installdeps ${BUILD_DIR}/koha/
 fi
 
-if [[ ! -z "${EXTRA_APT}" ]]; then
+if [[ -n "${EXTRA_APT}" && "${EXTRA_APT}" != "" ]]; then
     echo "Installing requested packages using apt: ${EXTRA_APT}"
     apt update
     apt install -y ${EXTRA_APT}
 fi
 
-if [[ ! -z "${EXTRA_CPAN}" ]]; then
+if [[ -n "${EXTRA_CPAN}" && "${EXTRA_CPAN}" != "" ]]; then
     echo "Installing requested Perl libraries: ${EXTRA_CPAN}"
     cpanm --skip-installed ${EXTRA_CPAN}
 fi
