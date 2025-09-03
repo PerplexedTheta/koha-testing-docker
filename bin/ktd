@@ -76,20 +76,20 @@ handle_down_command() {
     
     if [ "$instance" = "--all" ]; then
         # Get all instance names and bring them down
-        docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | sort -u | \
+        ${DOCKER_BINARY} ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | sort -u | \
         while read project; do
             if [ -n "$project" ]; then
                 echo "Bringing down project: $project"
-                "$DOCKER_BINARY" compose -p "$project" down
+                ${DOCKER_BINARY} compose -p "$project" down
                 echo
             fi
         done
     elif [ -n "$instance" ]; then
         # Bring down specific instance
-        if docker ps -a --format '{{.Names}}' | grep -q "${instance}-koha-1"; then
+        if ${DOCKER_BINARY} ps -a --format '{{.Names}}' | grep -q "${instance}-koha-1"; then
             echo "Bringing down project: $instance"
-            container_count=$(docker ps -a --format '{{.Names}}' | grep "^${instance}-" | wc -l)
-            "$DOCKER_BINARY" compose -p "$instance" down
+            container_count=$( ${DOCKER_BINARY} ps -a --format '{{.Names}}' | grep "^${instance}-" | wc -l )
+            ${DOCKER_BINARY} compose -p "$instance" down
         else
             echo "Error: Instance '$instance' not found"
             exit 1
@@ -97,14 +97,14 @@ handle_down_command() {
     else
         # Default behavior - bring down current instance
         echo "Bringing down project: ${PROJECT_NAME}"
-        container_count=$(docker ps -a --format '{{.Names}}' | grep "^${PROJECT_NAME}-" | wc -l)
-        "$DOCKER_BINARY" compose -p ${PROJECT_NAME} down
+        container_count=$( ${DOCKER_BINARY} ps -a --format '{{.Names}}' | grep "^${PROJECT_NAME}-" | wc -l )
+        ${DOCKER_BINARY} compose -p ${PROJECT_NAME} down
     fi
 }
 
 set_docker()
 {
-    if [ -z "$DOCKER_BINARY" ]; then
+    if [ -z "${DOCKER_BINARY}" ]; then
 
         export DOCKER_BINARY="$(which docker)"
 
@@ -324,7 +324,7 @@ if [ "$LIST_INSTANCES" != "no" ]; then
     display_instances() {
         local status=$1
         local color=$2
-        docker ps $3 --format '{{.Names}} {{.Status}}' | grep 'koha-1' | \
+        ${DOCKER_BINARY} ps $3 --format '{{.Names}} {{.Status}}' | grep 'koha-1' | \
         while read line; do
             name=$(echo $line | cut -d' ' -f1 | sed 's/-koha-1//')
             status=$(echo $line | cut -d' ' -f2-)
@@ -333,7 +333,7 @@ if [ "$LIST_INSTANCES" != "no" ]; then
     }
 
     # Get max length for formatting
-    max_len=$(docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | awk '{ print length }' | sort -nr | head -1)
+    max_len=$( ${DOCKER_BINARY} ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | awk '{ print length }' | sort -nr | head -1 )
     
     # Print header
     printf "%-${max_len}s  %s\n" "INSTANCE" "STATUS"
@@ -364,7 +364,7 @@ if [ "$WAIT_READY" != "no" ]; then
     fi
 
     for i in $(seq 1 $WAIT_TIMEOUT); do
-        if docker exec ${PROJECT_NAME}-koha-1 bash -c '[ -e /ktd_ready ]'; then
+        if ${DOCKER_BINARY} exec ${PROJECT_NAME}-koha-1 bash -c '[ -e /ktd_ready ]'; then
             printf "\n"
             exit 0
         else
@@ -386,16 +386,16 @@ if [ "$SHELL_ACCESS" != "no" ]; then
     fi
 
     if [ "$RUN" != "" ]; then
-        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha ${PROJECT_NAME}-koha-1 bash -c "${RUN}"
+        ${DOCKER_BINARY} exec ${SHELL_USER} --workdir /kohadevbox/koha ${PROJECT_NAME}-koha-1 bash -c "${RUN}"
     else
-        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha -ti ${PROJECT_NAME}-koha-1 bash
+        ${DOCKER_BINARY} exec ${SHELL_USER} --workdir /kohadevbox/koha -ti ${PROJECT_NAME}-koha-1 bash
     fi
 
 elif [ "$DBSHELL_ACCESS" != "no" ]; then
-    "$DOCKER_BINARY" exec -it ${PROJECT_NAME}-db-1 mysql -u koha_kohadev -ppassword koha_kohadev
+    ${DOCKER_BINARY} exec -it ${PROJECT_NAME}-db-1 mysql -u koha_kohadev -ppassword koha_kohadev
 elif [ "$FOLLOW_LOGS" != "no" ]; then
 
-    "$DOCKER_BINARY" logs -f ${PROJECT_NAME}-koha-1
+    ${DOCKER_BINARY} logs -f ${PROJECT_NAME}-koha-1
 else
     # run the KTD command
     if [ -n "$KTD_HOME" ]; then
@@ -478,9 +478,9 @@ else
             export KOHA_INSTANCE=${PROJECT_NAME}
 
             if [ "$1" = "down" ]; then
-                "$DOCKER_BINARY" compose -p ${PROJECT_NAME} down
+                ${DOCKER_BINARY} compose -p ${PROJECT_NAME} down
             else
-                "$DOCKER_BINARY" compose ${COMPOSE_OPTIONS} $@
+                ${DOCKER_BINARY} compose ${COMPOSE_OPTIONS} $@
             fi
 
             # back to the original working directory
