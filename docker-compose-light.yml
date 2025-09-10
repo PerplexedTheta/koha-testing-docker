@@ -24,7 +24,7 @@ services:
         env_file:
             - .env
         environment:
-            COVERAGE: ${COVERAGE}
+            COVERAGE: ${COVERAGE:-}
             CPAN: ${CPAN:-no}
             EXTRA_CPAN: ${EXTRA_CPAN:-}
             EXTRA_APT: ${EXTRA_APT:-}
