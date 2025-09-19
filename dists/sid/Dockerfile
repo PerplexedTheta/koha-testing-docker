@@ -21,6 +21,7 @@ RUN apt-get -y update \
       codespell \
       cpanminus \
       git \
+      lsb-release \
       tig \
       libcarp-always-perl \
       libgit-repository-perl \
