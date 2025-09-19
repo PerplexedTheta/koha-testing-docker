@@ -67,8 +67,7 @@ common:
     - xauth
     - xvfb
 
-  temp:
-    - libtemplate-plugin-json-perl
+  temp: []
 
 distro_specific:
   # Older Ubuntu versions

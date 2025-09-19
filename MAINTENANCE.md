@@ -88,6 +88,13 @@ distro_specific:
       libgconf-2-4: null  # Remove this package
 ```
 
+#### Empty Package Sets
+To define an empty package set (no packages to install):
+```yaml
+common:
+  temp: []  # Empty package set
+```
+
 #### Additional Packages
 If a distribution needs extra packages:
 ```yaml
