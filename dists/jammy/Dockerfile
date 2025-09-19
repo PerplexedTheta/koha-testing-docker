@@ -5,23 +5,43 @@ LABEL maintainer="tomascohen@theke.io"
 
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
+
 ENV REFRESHED_AT 2021-10-19
 
-# Copy package management scripts
-COPY files/install-packages /usr/local/bin/
-COPY files/package-config.yaml /usr/local/bin/
-RUN chmod +x /usr/local/bin/install-packages
-
-# Install dependencies needed by install-packages
-RUN apt-get update \
-   && apt-get -y install \
-        lsb-release \
-        libmodern-perl-perl \
-        libyaml-libyaml-perl \
-   && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-
-# Install base packages
-RUN /usr/local/bin/install-packages base
+# Install apache2 and testting deps
+# netcat: used for checking the DB is up
+RUN apt-get -y update \
+    && apt-get -y upgrade \
+    && apt-get -y install \
+      apache2 \
+      build-essential \
+      codespell \
+      cpanminus \
+      git \
+      tig \
+      libcarp-always-perl \
+      libgit-repository-perl \
+      libmemcached-tools \
+      libmodule-install-perl \
+      libperl-critic-perl \
+      libtest-differences-perl \
+      libtest-perl-critic-perl \
+      libtest-perl-critic-progressive-perl \
+      libfile-chdir-perl \
+      libdata-printer-perl \
+      pmtools \
+      locales \
+      netcat \
+      python-gdbm \
+      vim \
+      nano \
+      tmux \
+      wget \
+      curl \
+      apt-transport-https \
+      mlocate \
+   && rm -rf /var/cache/apt/archives/* \
+   && rm -rf /var/lib/apt/lists/*
 
 # Set locales
 RUN    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
@@ -65,8 +85,23 @@ RUN apt-get -y update \
 RUN mkdir /kohadevbox
 WORKDIR /kohadevbox
 
-# Install Koha development packages
-RUN /usr/local/bin/install-packages koha-dev
+# Install testing extras, packages and cpan
+RUN apt-get -y update \
+   && apt-get -y install \
+         perltidy \
+         libexpat1-dev \
+         libtemplate-plugin-gettext-perl \
+         libdevel-cover-perl \
+\
+         libmoosex-attribute-env-perl \
+         libtest-dbix-class-perl \
+         libtap-harness-junit-perl \
+         libtext-csv-unicode-perl \
+         libdevel-cover-report-clover-perl \
+         libwebservice-ils-perl \
+         libselenium-remote-driver-perl \
+   && rm -rf /var/cache/apt/archives/* \
+   && rm -rf /var/lib/apt/lists/*
 
 # Add nodejs repo
 RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
@@ -114,26 +149,47 @@ RUN cd /kohadevbox \
                      gitify \
                      qa-test-tools
 
-# How-to and utility packages
+# How-to
 RUN cd /kohadevbox \
-    && git clone https://gitlab.com/koha-community/koha-howto.git howto
+    && git clone https://gitlab.com/koha-community/koha-howto.git howto \
+    && apt-get update \
+    && apt-get -y install \
+        bugz \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install utility packages
-RUN /usr/local/bin/install-packages utility
-
-# Install Cypress testing packages
-RUN /usr/local/bin/install-packages cypress
+# cypress tests
+RUN apt-get update \
+    && apt-get -y install \
+        libgtk2.0-0\
+        libgtk-3-0\
+        libgbm-dev\
+        libnotify-dev\
+        libgconf-2-4\
+        libnss3\
+        libxss1\
+        libasound2\
+        libxtst6\
+        xauth\
+        xvfb \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/apt/lists/*
 
 # download koha-reload-starman
 RUN cd /kohadevbox \
     && wget https://gitlab.com/mjames/koha-reload-starman/-/raw/master/koha-reload-starman \
-    && chmod 755 koha-reload-starman
+    && chmod 755 koha-reload-starman \
+    && apt-get update \
+    && apt-get -y install inotify-tools \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install temporary packages
-RUN /usr/local/bin/install-packages temp
-
-# Install CPAN modules
-RUN /usr/local/bin/install-packages cpan
+RUN apt-get update \
+     && apt-get -y install \
+         libtemplate-plugin-json-perl \
+     && rm -rf /var/cache/apt/archives/* \
+     && rm -rf /var/lib/apt/lists/*
 
 VOLUME /kohadevbox/koha
 
@@ -142,8 +198,6 @@ COPY files/templates /kohadevbox/templates
 COPY env/defaults.env /kohadevbox/templates/defaults.env
 COPY files/git_hooks /kohadevbox/git_hooks
 
-EXPOSE 6001 8080 8081
-
-WORKDIR /kohadevbox/koha
-
 CMD ["/bin/bash", "/kohadevbox/run.sh"]
+
+EXPOSE 8080 8081
