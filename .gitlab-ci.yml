@@ -137,4 +137,4 @@ noble-arm64v8:
   - docker push koha/koha-testing:main-noble-arm64v8
   - docker image rm koha/koha-testing:main-noble-arm64v8
   only:
-    - issue_503@koha-community/koha-testing-docker
+    - main@koha-community/koha-testing-docker
