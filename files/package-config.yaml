@@ -1,0 +1,114 @@
+# Package configuration for KTD
+# Structure: common packages (newest patterns) + distro-specific overrides and additions
+
+common:
+  base:
+    - apache2
+    - build-essential
+    - codespell
+    - cpanminus
+    - git
+    - lsb-release
+    - tig
+    - libcarp-always-perl
+    - libgit-repository-perl
+    - libmemcached-tools
+    - libmodule-install-perl
+    - libperl-critic-perl
+    - libtest-differences-perl
+    - libtest-perl-critic-perl
+    - libtest-perl-critic-progressive-perl
+    - libfile-chdir-perl
+    - libdata-printer-perl
+    - pmtools
+    - locales
+    - netcat-openbsd
+    - python3-gdbm
+    - vim
+    - nano
+    - tmux
+    - wget
+    - curl
+    - apt-transport-https
+    - mlocate
+    - iproute2
+
+  koha-dev:
+    - perltidy
+    - libexpat1-dev
+    - libtemplate-plugin-gettext-perl
+    - libdevel-cover-perl
+    - libmoosex-attribute-env-perl
+    - libtest-dbix-class-perl
+    - libtap-harness-junit-perl
+    - libtext-csv-unicode-perl
+    - libdevel-cover-report-clover-perl
+    - libwebservice-ils-perl
+    - libselenium-remote-driver-perl
+
+  nodejs:
+    - nodejs
+    - yarn
+
+  utility:
+    - bugz
+    - inotify-tools
+
+  cypress:
+    - libgtk2.0-0
+    - libgtk-3-0
+    - libgbm-dev
+    - libnotify-dev
+    - libgconf-2-4
+    - libnss3
+    - libxss1
+    - libasound2
+    - libxtst6
+    - xauth
+    - xvfb
+
+  temp:
+    - libtemplate-plugin-json-perl
+
+distro_specific:
+  # Older Ubuntu versions
+  focal:
+    base-overrides:
+      netcat-openbsd: netcat
+      python3-gdbm: python-gdbm
+
+  jammy:
+    base-overrides:
+      netcat-openbsd: netcat
+      python3-gdbm: python-gdbm
+
+  # Older Debian versions
+  bullseye:
+    base-overrides:
+      netcat-openbsd: netcat
+      python3-gdbm: python-gdbm
+
+  # Debian sid still uses python-gdbm
+  sid:
+    base-overrides:
+      python3-gdbm: python-gdbm
+
+  # Ubuntu 24.04 has t64 packages and plocate instead of mlocate
+  noble:
+    base-overrides:
+      mlocate: plocate
+    cypress-overrides:
+      libgtk2.0-0: libgtk2.0-0t64
+      libgtk-3-0: libgtk-3-0t64
+      libasound2: libasound2t64
+      libgconf-2-4: null
+
+  # Debian 12
+  bookworm: {}
+
+  # Debian trixie uses plocate and missing libgconf-2-4
+  trixie:
+    base-overrides:
+      mlocate: plocate
+    cypress-overrides:
+      libgconf-2-4: null  # null means remove this package

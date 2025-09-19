@@ -1,0 +1,141 @@
+#!/usr/bin/env perl
+
+use Modern::Perl;
+use YAML::XS;
+use File::Basename;
+
+# Package installation script for KTD
+# Usage: install-packages <package_set> [os_version]
+
+my $package_set = $ARGV[0] or die usage();
+my $os_version  = $ARGV[1] || get_os_version();
+
+my $script_dir  = dirname(__FILE__);
+my $config_file = "$script_dir/package-config.yaml";
+
+die "Error: Configuration file $config_file not found\n" unless -f $config_file;
+
+my $config = YAML::XS::LoadFile($config_file) or die "Error reading YAML: $!";
+
+sub get_os_version {
+    my $version = `lsb_release -cs 2>/dev/null` || 'unknown';
+    chomp $version;
+    return $version;
+}
+
+sub get_packages {
+    my ( $set, $os ) = @_;
+    my @packages;
+
+    # Get common packages for this set
+    if ( exists $config->{common}->{$set} ) {
+        @packages = @{ $config->{common}->{$set} };
+    }
+
+    # Apply distro-specific changes if they exist
+    if ( exists $config->{distro_specific}->{$os} ) {
+        my $distro_config = $config->{distro_specific}->{$os};
+
+        # Apply overrides first
+        my $override_key = "${set}-overrides";
+        if ( exists $distro_config->{$override_key} ) {
+            my %overrides = %{ $distro_config->{$override_key} };
+
+            for my $i ( 0 .. $#packages ) {
+                if ( exists $overrides{ $packages[$i] } ) {
+                    if ( defined $overrides{ $packages[$i] } ) {
+
+                        # Replace with override package
+                        $packages[$i] = $overrides{ $packages[$i] };
+                    } else {
+
+                        # null means remove this package
+                        $packages[$i] = undef;
+                    }
+                }
+            }
+
+            # Remove undefined packages
+            @packages = grep { defined $_ } @packages;
+        }
+
+        # Add additional packages
+        if ( exists $distro_config->{$set} ) {
+            push @packages, @{ $distro_config->{$set} };
+        }
+    }
+
+    # Remove duplicates while preserving order
+    my %seen;
+    @packages = grep { !$seen{$_}++ } @packages;
+
+    return @packages;
+}
+
+sub install_packages {
+    my ( $set, @packages ) = @_;
+    return unless @packages;
+
+    say "Installing '$set' packages for OS '$os_version':";
+    say "  - $_" for @packages;
+
+    system( 'apt-get', 'update' ) == 0 or die "apt-get update failed: $!";
+    system( 'apt-get', '-y',  'install', @packages ) == 0 or die "apt-get install failed: $!";
+    system( 'rm',      '-rf', '/var/cache/apt/archives/*', '/var/lib/apt/lists/*' );
+}
+
+sub install_cpan_modules {
+    my ( $set, @modules ) = @_;
+    return unless @modules;
+
+    say "Installing '$set' modules:";
+    say "  - $_" for @modules;
+
+    for my $module (@modules) {
+        system( 'cpanm', '--notest', $module ) == 0 or die "cpanm install failed for $module: $!";
+    }
+}
+
+sub usage {
+    return <<EOF;
+Usage: $0 <base|koha-dev|nodejs|utility|cypress|temp|cpan|all> [os_version]
+Available package sets:
+  base     - Base development packages
+  koha-dev - Koha-specific development packages
+  nodejs   - Node.js and Yarn
+  utility  - Utility packages
+  cypress  - Cypress testing packages
+  temp     - Temporary packages for development
+  cpan     - CPAN modules
+  all      - All package sets
+
+Detected OS version: $os_version
+EOF
+}
+
+if ( $package_set eq 'cpan' ) {
+    my @modules = get_packages( $package_set, $os_version );
+    if (@modules) {
+        install_cpan_modules( $package_set, @modules );
+    } else {
+        say "No modules found for set '$package_set' and OS '$os_version' - skipping";
+    }
+} elsif ( $package_set eq 'all' ) {
+    for my $set (qw(base koha-dev nodejs utility cypress temp)) {
+        my @packages = get_packages( $set, $os_version );
+        install_packages( $set, @packages ) if @packages;
+    }
+
+    # Handle CPAN separately
+    my @modules = get_packages( 'cpan', $os_version );
+    install_cpan_modules( 'cpan', @modules ) if @modules;
+} elsif ( $package_set =~ /^(base|koha-dev|nodejs|utility|cypress|temp)$/ ) {
+    my @packages = get_packages( $package_set, $os_version );
+    if (@packages) {
+        install_packages( $package_set, @packages );
+    } else {
+        say "No packages found for set '$package_set' and OS '$os_version' - skipping";
+    }
+} else {
+    die usage();
+}
