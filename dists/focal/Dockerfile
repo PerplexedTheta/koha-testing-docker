@@ -3,9 +3,9 @@ FROM ubuntu:20.04
 # File Author / Maintainer
 LABEL maintainer="tomascohen@theke.io"
 
-ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
-ENV DEBIAN_FRONTEND noninteractive
-ENV REFRESHED_AT 2025-09-19
+ENV PATH=/usr/bin:/bin:/usr/sbin:/sbin
+ENV DEBIAN_FRONTEND=noninteractive
+ENV REFRESHED_AT=2025-09-19
 
 # Copy package management scripts
 COPY files/install-packages /usr/local/bin/
@@ -31,10 +31,10 @@ RUN    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
     && dpkg-reconfigure locales \
     && /usr/sbin/update-locale LANG=en_US.UTF-8
 
-ENV LANGUAGE en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LC_CTYPE en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LC_CTYPE=en_US.UTF-8
 
 # Prepare apache configuration
 RUN a2dismod mpm_event
