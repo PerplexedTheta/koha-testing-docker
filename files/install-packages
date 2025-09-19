@@ -1,0 +1,105 @@
+#!/usr/bin/env perl
+
+use Modern::Perl;
+use YAML::XS;
+use File::Basename;
+
+# Package installation script for KTD
+# Usage: install-packages <package_set> [os_version]
+
+my $package_set = $ARGV[0] or die usage();
+my $os_version = $ARGV[1] || get_os_version();
+
+my $script_dir = dirname(__FILE__);
+my $config_file = "$script_dir/package-config.yaml";
+
+die "Error: Configuration file $config_file not found\n" unless -f $config_file;
+
+my $config = YAML::XS::LoadFile($config_file) or die "Error reading YAML: $!";
+
+sub get_os_version {
+    my $version = `lsb_release -cs 2>/dev/null` || 'unknown';
+    chomp $version;
+    return $version;
+}
+
+sub get_packages {
+    my ($set, $os) = @_;
+    my @packages;
+    
+    # Get common packages for this set
+    if (exists $config->{common}->{$set}) {
+        push @packages, @{$config->{common}->{$set}};
+    }
+    
+    # Add distro-specific packages if they exist
+    if (exists $config->{distro_specific}->{$os} && 
+        exists $config->{distro_specific}->{$os}->{$set}) {
+        push @packages, @{$config->{distro_specific}->{$os}->{$set}};
+    }
+    
+    # Remove duplicates while preserving order
+    my %seen;
+    @packages = grep { !$seen{$_}++ } @packages;
+    
+    return @packages;
+}
+
+sub install_packages {
+    my ($set, @packages) = @_;
+    return unless @packages;
+    
+    say "Installing '$set' packages for OS '$os_version':";
+    say "  - $_" for @packages;
+    
+    system('apt-get', 'update') == 0 or die "apt-get update failed: $!";
+    system('apt-get', '-y', 'install', @packages) == 0 or die "apt-get install failed: $!";
+    system('rm', '-rf', '/var/cache/apt/archives/*', '/var/lib/apt/lists/*');
+}
+
+sub install_cpan_modules {
+    my ($set, @modules) = @_;
+    return unless @modules;
+    
+    say "Installing '$set' modules:";
+    say "  - $_" for @modules;
+    
+    system('cpanm', '--notest', @modules) == 0 or die "cpanm install failed: $!";
+}
+
+sub usage {
+    return <<EOF;
+Usage: $0 <base|koha-dev|cypress|utility|temp|cpan|all> [os_version]
+Available package sets:
+  base     - Base development packages
+  koha-dev - Koha-specific development packages
+  cypress  - Cypress testing packages
+  utility  - Utility packages
+  temp     - Temporary packages for development
+  cpan     - CPAN modules
+  all      - All package sets
+
+Detected OS version: $os_version
+EOF
+}
+
+if ($package_set eq 'cpan') {
+    my @modules = get_packages($package_set, $os_version);
+    install_cpan_modules($package_set, @modules);
+} elsif ($package_set eq 'all') {
+    for my $set (qw(base koha-dev cypress utility temp)) {
+        my @packages = get_packages($set, $os_version);
+        install_packages($set, @packages) if @packages;
+    }
+    my @modules = get_packages('cpan', $os_version);
+    install_cpan_modules('cpan', @modules) if @modules;
+} elsif ($package_set =~ /^(base|koha-dev|cypress|utility|temp)$/) {
+    my @packages = get_packages($package_set, $os_version);
+    if (@packages) {
+        install_packages($package_set, @packages);
+    } else {
+        say "No packages found for set '$package_set' and OS '$os_version'";
+    }
+} else {
+    die usage();
+}
