@@ -408,7 +408,7 @@ __END_SRU_PUBLICSERVER__
       git_install is used to adjust some paths specific to git installations (fka dev_install)
       debug_mode is used to differentiate production from test systems (see for example koha-plack) -->
  <git_install>1</git_install>
- <debug_mode>0</debug_mode>
+ <debug_mode>1</debug_mode>
 
  <!-- strict_sql_modes should not be used in a production environment
        developers use it to catch bugs related to strict SQL modes -->
