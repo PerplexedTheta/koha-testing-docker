@@ -409,6 +409,8 @@ __END_SRU_PUBLICSERVER__
       debug_mode is used to differentiate production from test systems (see for example koha-plack) -->
  <git_install>1</git_install>
  <debug_mode>1</debug_mode>
+ <!-- flag for backward compatibility, useful for bisecting -->
+ <dev_install>1</dev_install>
 
  <!-- strict_sql_modes should not be used in a production environment
        developers use it to catch bugs related to strict SQL modes -->
