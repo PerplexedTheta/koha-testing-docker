@@ -153,6 +153,7 @@ envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/bisect_with_test > ${BUILD_
 # Make sure things are executable on /bin.
 chmod +x ${BUILD_DIR}/bin/*
 
+cd ${BUILD_DIR}
 koha-create --request-db ${KOHA_INSTANCE} --memcached-servers memcached:11211
 
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/vimrc > /var/lib/koha/${KOHA_INSTANCE}/.vimrc

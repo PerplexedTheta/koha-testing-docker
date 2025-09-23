@@ -141,6 +141,4 @@ COPY files/git_hooks /kohadevbox/git_hooks
 
 EXPOSE 6001 8080 8081
 
-WORKDIR /kohadevbox/koha
-
 CMD ["/bin/bash", "/kohadevbox/run.sh"]
