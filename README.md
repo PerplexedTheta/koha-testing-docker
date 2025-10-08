@@ -50,10 +50,10 @@ git clone https://gitlab.com/koha-community/koha-testing-docker.git koha-testing
 
 ```shell
 cd $PROJECTS_DIR
-git clone --branch main --single-branch https://git.koha-community.org/Koha-community/Koha.git koha
+git clone --branch main --single-branch --depth 1 https://git.koha-community.org/Koha-community/Koha.git koha
 ```
 
-**Note:** this will do a shallow clone only fetching the main branch to speed up the process. Alternatively, you could do a full clone with
+**Note:** this will do a shallow clone only fetching the latest commit of the main branch to speed up the process. Alternatively, you could do a full clone with
 
 ```shell
 git clone https://git.koha-community.org/Koha-community/Koha.git koha
