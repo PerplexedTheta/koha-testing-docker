@@ -102,6 +102,11 @@ RUN cd /usr/local/share \
     && git clone --depth 1 --branch apply_on_cascade https://gitlab.com/koha-community/git-bz git-bz \
     && ln -s /usr/local/share/git-bz/git-bz /usr/bin/git-bz
 
+# Add perl-git-bz
+RUN cd /kohadevbox \
+    && git clone --depth 1 https://gitlab.com/koha-community/perl-git-bz.git \
+    && cd perl-git-bz && cpanm --installdeps .
+
 # Clone helper repositories
 RUN cd /kohadevbox \
     && git clone https://gitlab.com/koha-community/koha-misc4dev.git   misc4dev \
