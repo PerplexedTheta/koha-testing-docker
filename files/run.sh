@@ -113,8 +113,12 @@ perl ${BUILD_DIR}/misc4dev/cp_debian_files.pl \
 # Wait for the DB server startup
 while ! nc -z db 3306; do sleep 1; done
 
+export DB_NAME="koha_${KOHA_INSTANCE}"
+export DB_PASSWORD=${KOHA_DB_PASSWORD}
+export DB_USER="koha_${KOHA_INSTANCE}"
+
 # TODO: Have bugs pushed so all this is a koha-create parameter
-echo "${KOHA_INSTANCE}:koha_${KOHA_INSTANCE}:${KOHA_DB_PASSWORD}:koha_${KOHA_INSTANCE}" > /etc/koha/passwd
+echo "${KOHA_INSTANCE}:${DB_USER}:${DB_PASSWORD}:${DB_NAME}" > /etc/koha/passwd
 # TODO: Get rid of this hack with the relevant bug
 echo "[client]"                   > /etc/mysql/koha-common.cnf
 echo "host     = ${DB_HOSTNAME}" >> /etc/mysql/koha-common.cnf
@@ -124,8 +128,8 @@ echo "password = password"       >> /etc/mysql/koha-common.cnf
 
 echo "[client]"                          > /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 echo "host     = ${DB_HOSTNAME}"        >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
-echo "user     = koha_${KOHA_INSTANCE}" >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
-echo "password = ${KOHA_DB_PASSWORD}"   >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
+echo "user     = ${DB_USER}"            >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
+echo "password = ${DB_PASSWORD}"        >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 
 # Get rid of Apache warnings
 append_if_absent "ServerName kohadevbox"        /etc/apache2/apache2.conf
@@ -135,7 +139,7 @@ append_if_absent "Listen ${KOHA_OPAC_PORT}"     /etc/apache2/ports.conf
 # Pull the names of the environment variables to substitute from defaults.env and convert them to a string of the format "$VAR1:$VAR2:$VAR3", etc.
 VARS_TO_SUB=`cut -d '=' -f1 ${BUILD_DIR}/templates/defaults.env  | tr '\n' ':' | sed -e 's/:/:$/g' | awk '{print "$"$1}' | sed -e 's/:\$$//'`
 # Add additional vars to sub from this script that are not in defaults.env
-VARS_TO_SUB="\$BUILD_DIR:$VARS_TO_SUB";
+VARS_TO_SUB="\$DB_NAME:\$DB_PASSWORD:\$DB_USER:\$BUILD_DIR:$VARS_TO_SUB";
 
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/root_bashrc           > /root/.bashrc
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/vimrc                 > /root/.vimrc
