@@ -76,8 +76,23 @@ for my $yml (@docker_compose_yml) {
     run( qq{wget -O $yml $GITLAB_RAW_URL/$yml}, { exit_on_error => 1 } );
 }
 
+my $env_file = '.env';
 my $docker_compose_env = "$GITLAB_RAW_URL/env/defaults.env";
-run( qq{wget -O .env $docker_compose_env}, { exit_on_error => 1 } );
+run( qq{wget -O $env_file $docker_compose_env}, { exit_on_error => 1 } );
+
+{
+    local @ARGV = ($env_file);
+    local $^I = '';  # in-place editing
+    while (<>) {
+        if (/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/) {
+            my ($key, $val) = ($1, $2);
+            if (exists $ENV{$key}) {
+                $_ = "$key=$ENV{$key}\n";
+            }
+        }
+        print;
+    }
+}
 
 docker_cleanup();
 
