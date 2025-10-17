@@ -33,6 +33,15 @@ trixie:
   only:
     - main@koha-community/koha-testing-docker
 
+trixie-node-20:
+  stage: build
+  script:
+  - docker build -t koha/koha-testing:main-trixie-node-20 --no-cache --rm -f dists/trixie-node-20/Dockerfile .
+  - docker push koha/koha-testing:main-trixie-node-20
+  - docker image rm koha/koha-testing:main-trixie-node-20
+  only:
+    - main@koha-community/koha-testing-docker
+
 bookworm:
   stage: build
   script:
