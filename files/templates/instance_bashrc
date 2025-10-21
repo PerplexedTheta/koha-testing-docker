@@ -34,6 +34,7 @@ fi
 
 export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadevbox/node_modules/.bin/
 
+export KOHA_SOURCE_DIR="/kohadevbox/koha"
 export EDITOR=${EDITOR}
 export KOHA_CONF="/etc/koha/sites/${KOHA_INSTANCE}/koha-conf.xml"
 export PERL5LIB=${PERL5LIB}
@@ -43,7 +44,7 @@ export KOHA_USER=${KOHA_USER}
 export KOHA_PASS=${KOHA_PASS}
 export KOHA_INTRANET_URL=http://koha:8081
 export KOHA_OPAC_URL=http://koha:8080
-export PERL5LIB="/kohadevbox/koha:/kohadevbox/koha/lib:/kohadevbox/qa-test-tools"
+export PERL5LIB="${KOHA_SOURCE_DIR}:${KOHA_SOURCE_DIR}/lib:/kohadevbox/qa-test-tools"
 export SELENIUM_ADDR=${SELENIUM_ADDR}
 export SELENIUM_PORT=${SELENIUM_PORT}
 # Database
