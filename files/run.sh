@@ -131,6 +131,10 @@ echo "host     = ${DB_HOSTNAME}"        >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 echo "user     = ${DB_USER}"            >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 echo "password = ${DB_PASSWORD}"        >> /etc/mysql/koha_${KOHA_INSTANCE}.cnf
 
+# TODO: Remove once bug 41099 is pushed
+echo "[client]"  >> /etc/mysql/my.cnf
+echo "ssl = off" >> /etc/mysql/my.cnf
+
 # Get rid of Apache warnings
 append_if_absent "ServerName kohadevbox"        /etc/apache2/apache2.conf
 append_if_absent "Listen ${KOHA_INTRANET_PORT}" /etc/apache2/ports.conf
