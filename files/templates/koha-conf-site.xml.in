@@ -276,7 +276,6 @@ __END_SRU_PUBLICSERVER__
  <pluginsdir>__PLUGINS_DIR__</pluginsdir> <!-- This entry can be repeated to use multiple directories -->
  <!--pluginsdir>YOUR_PLUGIN_DIR_HERE</pluginsdir-->
  <enable_plugins>1</enable_plugins>
- <plugins_restart>1</plugins_restart>
  <upload_path>__UPLOAD_PATH__</upload_path>
  <tmp_path>__TMP_PATH__</tmp_path>
  <intranetdir>/usr/share/koha/intranet/cgi-bin</intranetdir>
@@ -416,7 +415,7 @@ __END_SRU_PUBLICSERVER__
        developers use it to catch bugs related to strict SQL modes -->
  <strict_sql_modes>1</strict_sql_modes>
 
- <plugins_restricted>1</plugins_restricted>
+ <plugins_restricted>0</plugins_restricted>
  <plugins_restart>1</plugins_restart>
  <plugin_repos>
     <repo>
