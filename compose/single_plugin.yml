@@ -1,0 +1,6 @@
+services:
+    koha:
+        volumes:
+            - ${SINGLE_PLUGIN_PATH}:/kohadevbox/plugins/${SINGLE_PLUGIN_NAME}
+        environment:
+            ENABLE_PLUGINS: yes

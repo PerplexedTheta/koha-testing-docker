@@ -45,6 +45,7 @@ Options:
     --os1                 Use an OpenSearch 1.x container
     --os2                 Use an OpenSearch 2.x container
     --plugins             Enable plugin development environment
+    --single-plugin PATH  Mount a single plugin from PATH to /kohadevbox/plugins/
     --selenium            Use a Selenium container
     --sso                 Use a Keycloak container
     --shell               Get into the Koha container
@@ -184,6 +185,15 @@ set_image()
     fi
 }
 
+toggle_plugins()
+{
+    if [ "$SINGLE_PLUGIN_PATH" != "" ] && [ "$ENABLE_PLUGINS" != "no" ]; then
+        printf "\nError: --plugins and --single-plugin are mutually exclusive\n\n"
+        usage
+        exit 1
+    fi
+}
+
 ENV_DB_IMAGE=$DB_IMAGE
 ENV_ES_IMAGE=$ES_IMAGE
 ENV_KOHA_IMAGE=$KOHA_IMAGE
@@ -205,6 +215,7 @@ WAIT_READY="no"
 ENABLED_SEARCHENGINE=""
 
 ENABLE_PLUGINS="no"
+SINGLE_PLUGIN_PATH=""
 ENABLE_SELENIUM="no"
 ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
@@ -260,7 +271,12 @@ while [ $# -gt 0 ]; do
             shift ;;
         --plugins)
             ENABLE_PLUGINS="yes"
+            toggle_plugins
             shift ;;
+        --single-plugin)
+            SINGLE_PLUGIN_PATH="$2"
+            toggle_plugins
+            shift 2 ;;
         --proxy)
             USE_PROXY="yes"
             shift ;;
@@ -438,6 +454,16 @@ else
 
             if [ "$ENABLE_PLUGINS" != "no" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/plugins.yml"
+            fi
+
+            if [ "$SINGLE_PLUGIN_PATH" != "" ]; then
+                if [ ! -d "$SINGLE_PLUGIN_PATH" ]; then
+                    printf "\nError: Single plugin path '$SINGLE_PLUGIN_PATH' does not exist or is not a directory\n\n"
+                    exit 1
+                fi
+                export SINGLE_PLUGIN_PATH="$SINGLE_PLUGIN_PATH"
+                export SINGLE_PLUGIN_NAME="$(basename "$SINGLE_PLUGIN_PATH")"
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/single_plugin.yml"
             fi
 
             if [ "$ENABLE_SELENIUM" != "no" ]; then
