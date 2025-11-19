@@ -20,7 +20,9 @@ This project is self contained and all you need is:
 
 Notes:
 * **Linux** users, only Docker engine (aka Docker server) is required to run `ktd`.
-* **Windows** and **macOS** users use [Docker Desktop](https://docs.docker.com/compose/install/compose-desktop/) which already ships Docker Compose v2.
+* **Windows** users are recommended to first [install Debian on WSL](https://wiki.debian.org/InstallingDebianOn/Microsoft/Windows/SubsystemForLinux#WSL_2_with_systemd_support) and can then [install Docker directly in Debian](https://docs.docker.com/engine/install/debian/).
+* alternatively, **Windows** users may also use [Docker Desktop](https://docs.docker.com/compose/install/compose-desktop/) on Windows and then [install Debian on WSL](https://wiki.debian.org/InstallingDebianOn/Microsoft/Windows/SubsystemForLinux#WSL_2_with_systemd_support). However, Docker Desktop will then need to be started in Windows before ktd can be used in WSL.
+* **macOS** users use [Docker Desktop](https://docs.docker.com/compose/install/compose-desktop/) which already ships Docker Compose v2.
 
 ### Hardware
 
