@@ -29,9 +29,9 @@ This script lets you manage your KTD environment.
 
 Usage:
 
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] up -d
+    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] up -d
     $scriptname down [instance_name|--all]
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun] pull
+    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
     $scriptname --logs
@@ -57,6 +57,7 @@ Options:
     --name                Sets the project name
     --localrun            Start the container with local run.sh file
     --local-db            Bind MySQL/MariaDB to localhost (useful for Cypress tests)
+    --marcflavour         Set the MARC flavour (e.g., MARC21, UNIMARC, NORMARC)
     --file|-f             Compose configuration files
     --logs                Follow the koha container logs
     --list                Print the list of running KTD instances
@@ -317,6 +318,9 @@ while [ $# -gt 0 ]; do
         --local-db)
             BIND_LOCAL_DB="yes"
             shift ;;
+        --marcflavour)
+            KOHA_MARC_FLAVOUR=$2
+            shift 2 ;;
         -f | --file)
             COMPOSE_FILES+=("$2")
             shift 2
@@ -506,6 +510,7 @@ else
             fi
 
             export KOHA_ELASTICSEARCH="${KOHA_ELASTICSEARCH}"
+            export KOHA_MARC_FLAVOUR="${KOHA_MARC_FLAVOUR}"
 
             COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -p ${PROJECT_NAME}"
 
