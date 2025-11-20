@@ -17,6 +17,7 @@ This project is self contained and all you need is:
 - A text editor to tweak configuration files
 - Docker ([install instructions](https://docs.docker.com/engine/install/#server))
 - Docker Compose v2 ([install instructions](https://docs.docker.com/compose/install/linux/#install-using-the-repository))
+  - You need to have docker compose 2.33.1 or later, `docker compose version` will tell you wnat you have if you already have it installed through your distribution.
 
 Notes:
 * **Linux** users, only Docker engine (aka Docker server) is required to run `ktd`.
@@ -139,67 +140,47 @@ In order to launch _KTD_, you can use the `ktd` wrapper command. It is a wrapper
 `docker compose` command so it accepts its parameters:
 
 * Starting:
-
-```shell
-ktd up
-```
-
+  ```shell
+   ktd up
+   ```
 * Get into the Koha container shell (instance user)
-
-```shell
-ktd --shell
-```
-
+  ```shell
+  ktd --shell
+  ```
 * Get into the Koha container shell (root user)
-
-```shell
-ktd --root --shell
-```
-
+  ```shell
+  ktd --root --shell
+  ```
 * Run a command inside the container
-
-```shell
-ktd --shell --run 'echo hola'
-```
-
+  ```shell
+  ktd --shell --run 'echo hola'
+  ```
 * Get into a DB (mysql) shell
-
-```shell
-ktd --dbshell
-```
-
+  ```shell
+  ktd --dbshell
+  ```
 * Watching the _koha_ container logs
-
-```shell
-ktd --logs
-```
-
+  ```shell
+  ktd --logs
+  ```
 * Updating the used images:
-
-```shell
-ktd pull
-```
-
+  ```shell
+  ktd pull
+  ```
 * Shutting it down
-
-```shell
-ktd down
-```
-
+  ```shell
+  ktd down
+  ```
 * Waiting for startup completion
-
-```shell
-ktd --wait-ready 100 && echo "YAY" || echo "BOO"
-```
-
-* Adding services to our stack
-
-Several option switches are provided for more fine-grained control:
-
-```shell
-ktd --es7 up
-ktd --selenium --os1 --plugins --sso up
-```
+  ```shell
+  ktd --wait-ready 100 && echo "YAY" || echo "BOO"
+  ```
+* Adding services to our stack\
+  Several option switches are provided for more fine-grained control:
+  ```shell
+  ktd --es7 up
+  ktd --selenium --os1 --plugins --sso up
+  ```
 
 Note: the `pull` command would also work if you add several option switches. So running:
 
@@ -214,6 +195,25 @@ For a complete list of the option switches, run the command with the _--help_ op
 ```shell
 ktd --help
 ```
+### Getting to the web interface after `ktd up`
+Once you have run `ktd up` and it has finished, you can access the Koha web interface.
+
+You may also consider if proxied `KTD`, described further below, is something you want.
+
+1. Figure out the IP address it's running as
+   ```sh
+   $ ktd --shell
+   kohadev-koha@kohadevbox:koha(main)$ ip a
+   ...
+   2: eth0@if7: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default 
+    link/ether 62:24:ad:a1:18:2b brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.18.0.4/16 brd 172.18.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+   ```
+   In this example, the IP address is `172.18.0.4`
+2. Point your web browser to these URLs, changing the IP address as needed:
+   * http://172.18.0.4:8080/ for the OPAC
+   * http://172.18.0.4:8081/ for the staff interface
 
 ## Proxied `KTD`
 
@@ -288,18 +288,6 @@ DB_IMAGE=mysql:8.0 ktd --proxy --name mysql8 up -d
 
 We highly recommend the use of [git worktrees](https://git-scm.com/docs/git-worktree) for having different
 codebases on your hard drive without filling it up quickly.
-
-## Getting to the web interface
-
-The IP address of the web server in your docker group will be variable. Once you are in with SSH, issuing a
-
-```shell
-ip a
-```
-
-should display the IP address of the webserver. At this point the web interface of Koha can be accessed by going to
-http://<the displayed IP>:8080 for the OPAC
-http://<the displayed IP>:8081 for the Staff interface.
 
 ## Available commands and aliases
 
