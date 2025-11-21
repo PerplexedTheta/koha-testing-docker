@@ -17,7 +17,7 @@ This project is self contained and all you need is:
 - A text editor to tweak configuration files
 - Docker ([install instructions](https://docs.docker.com/engine/install/#server))
 - Docker Compose v2 ([install instructions](https://docs.docker.com/compose/install/linux/#install-using-the-repository))
-  - You need to have docker compose 2.33.1 or later, `docker compose version` will tell you wnat you have if you already have it installed through your distribution.
+  - You need to have docker compose 2.33.1 or later, `docker compose version` will tell you what you have if you already have it installed through your distribution.
 
 Notes:
 * **Linux** users, only Docker engine (aka Docker server) is required to run `ktd`.
