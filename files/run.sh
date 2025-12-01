@@ -273,6 +273,9 @@ a2ensite ${KOHA_INSTANCE}.conf
 
 cp /kohadevbox/koha/package.json /kohadevbox
 cp /kohadevbox/koha/yarn.lock    /kohadevbox
+# Wipe possible residual directories from previous engine
+rm -rf /var/lib/koha/${KOHA_INSTANCE}/.cache/js-v8flags
+rm -rf /var/lib/koha/${KOHA_INSTANCE}/.cache/yarn
 yarn install --modules-folder /kohadevbox/node_modules
 
 # Update /etc/hosts so the www tests can run
