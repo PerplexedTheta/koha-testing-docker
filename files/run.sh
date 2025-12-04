@@ -154,6 +154,13 @@ envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/dbic > ${BUILD_DIR}/bin/dbi
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/flush_memcached > ${BUILD_DIR}/bin/flush_memcached
 envsubst "$VARS_TO_SUB" < ${BUILD_DIR}/templates/bin/bisect_with_test > ${BUILD_DIR}/bin/bisect_with_test
 
+LSB_RELEASE=$(lsb_release -s -c 2 2> /dev/null)
+# Distro specific workarounds
+if [ "${LSB_RELEASE}" = "trixie" ]; then
+    echo "[client]"  >> /etc/mysql/my.cnf
+    echo "ssl = off" >> /etc/mysql/my.cnf
+fi
+
 # Make sure things are executable on /bin.
 chmod +x ${BUILD_DIR}/bin/*
 
