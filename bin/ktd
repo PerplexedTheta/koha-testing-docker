@@ -29,9 +29,9 @@ This script lets you manage your KTD environment.
 
 Usage:
 
-    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--mana|--mana-url|--marcflavour <flavour>] up -d
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--smtp|--localrun|--mana|--mana-url|--marcflavour <flavour>] up -d
     $scriptname down [instance_name|--all]
-    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--mana|--mana-url|--marcflavour <flavour>] pull
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--smtp|--localrun|--mana|--mana-url|--marcflavour <flavour>] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
     $scriptname --logs
@@ -46,6 +46,7 @@ Options:
     --selenium            Use a Selenium container
     --mana                Connects koha to the mana network
     --mana-url 'url'      Sets the mana-url
+    --smtp                Use a SMTP container
     --sso                 Use a Keycloak container
     --shell               Get into the Koha container
     --dbshell             Get into the database
@@ -216,6 +217,7 @@ ENABLE_PLUGINS="no"
 SINGLE_PLUGIN_PATH=""
 ENABLE_SELENIUM="no"
 ENABLE_MANA="no"
+ENABLE_SMTP="no"
 ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
 ENABLE_BUILD_IMAGE="no"
@@ -354,6 +356,9 @@ while [ $# -gt 0 ]; do
             SET_MANA_URL="yes"
             mana_url_to_be_set=$2
             shift 2;;
+        --smtp)
+            ENABLE_SMTP="yes"
+            shift ;;
         --sso)
             ENABLE_SSO="yes"
             shift ;;
@@ -639,7 +644,7 @@ else
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/selenium.yml"
             fi
 
-	        if [ "$ENABLE_MANA" != "no" ]; then
+            if [ "$ENABLE_MANA" != "no" ]; then
                 MANA_URL="http://mana:5000"
                 export MANA_URL
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/mana.yml"
@@ -647,6 +652,10 @@ else
 
             if [ "$SET_MANA_URL" != "no" ]; then
                 export MANA_URL="${mana_url_to_be_set}"
+            fi
+
+            if [ "$ENABLE_SMTP" != "no" ]; then
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/smtp.yml"
             fi
 
             if [ "$ENABLE_SSO" != "no" ]; then

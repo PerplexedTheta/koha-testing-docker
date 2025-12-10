@@ -446,6 +446,22 @@ _KTD_ ships with some nice tools for working with plugins
 
 Please see the [wiki](https://gitlab.com/koha-community/koha-testing-docker/-/wikis/Developing-plugins) for details
 
+### Testing emails with fake SMTP server
+You can use `--smtp` option to start a [Mailpit](https://mailpit.axllent.org/) instance for testing emails.
+
+```shell
+ktd --smtp up
+```
+
+**SMTP Configuration:**
+In _Administration > SMTP Servers_: Create a new SMTP server with the following configuration:
+
+- Host: `smtp`
+- Port: `1025`
+- Default server: `yes`
+
+You can access the Mailpit web interface at `http://localhost:8025` or `http://smtp.<instance>.localhost` (using `--proxy` option), to view the trapped emails sent by Koha. This is also very useful for testing email headers, subject, templates, links, etc.
+
 ### Keycloak / SSO
 ktd ships with a keycloak option so one may use it for testing and developing single sign on functionality.
 

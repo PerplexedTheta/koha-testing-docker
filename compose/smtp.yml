@@ -1,0 +1,19 @@
+services:
+    smtp:
+        image: ${SMTP_IMAGE:-axllent/mailpit:latest}
+        environment:
+            - SMTP_WEB_PORT=${SMTP_WEB_PORT:-8025}
+            - SMTP_SMTP_PORT=${SMTP_SMTP_PORT:-1025}
+            - MP_SMTP_AUTH_ACCEPT_ANY=1
+            - MP_SMTP_AUTH_ALLOW_INSECURE=1
+        ports:
+            - "${SMTP_WEB_PORT:-8025}:8025"
+            - "${SMTP_SMTP_PORT:-1025}:1025"
+        networks:
+            - kohanet
+        labels:
+            - "traefik.enable=true"
+            - "traefik.docker.network=proxy"
+            - "traefik.http.routers.smtp.rule=Host(`smtp.${KOHA_INSTANCE}.localhost`)"
+            - "traefik.http.services.smtp.loadbalancer.server.port=${SMTP_WEB_PORT:-8025}"
+            - "traefik.http.services.smtp.loadbalancer.server.scheme=http"
