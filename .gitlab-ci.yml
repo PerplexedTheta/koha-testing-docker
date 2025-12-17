@@ -79,15 +79,7 @@ focal:
   only:
     - main@koha-community/koha-testing-docker
 
-lunar:
-  stage: build
-  script:
-    - docker buildx build --platform linux/amd64,linux/arm64/v8 
-      --tag koha/koha-testing:main-lunar
-      --file dists/lunar/Dockerfile
-      --push .
-  only:
-    - main@koha-community/koha-testing-docker
+
 
 sid:
   stage: build
