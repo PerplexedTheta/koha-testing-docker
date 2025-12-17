@@ -13,142 +13,88 @@ variables:
 
 before_script:
   - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
+  # Setup buildx for multi-arch
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx inspect --bootstrap
 
-#sid:
-#  stage: build
-#  script:
-#  - docker build -t koha/koha-testing:main-sid --no-cache --rm -f dists/sid/Dockerfile .
-#  - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-#  - docker push koha/koha-testing:main-sid
-#  - docker image rm koha/koha-testing:main-sid
-#  only:
-#    - main@koha-community/koha-testing-docker
-
+# Multi-arch builds
 trixie:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-trixie --no-cache --rm -f dists/trixie/Dockerfile .
-  - docker push koha/koha-testing:main-trixie
-  - docker image rm koha/koha-testing:main-trixie
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-trixie
+      --file dists/trixie/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
 bookworm:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-bookworm --no-cache --rm -f dists/bookworm/Dockerfile .
-  - docker push koha/koha-testing:main-bookworm
-  - docker tag  koha/koha-testing:main-bookworm koha/koha-testing:main
-  - docker push koha/koha-testing:main
-  - docker image rm koha/koha-testing:main-bookworm
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-bookworm
+      --file dists/bookworm/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
 bullseye:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-bullseye --no-cache --rm -f dists/bullseye/Dockerfile .
-  - docker push koha/koha-testing:main-bullseye
-  - docker image rm koha/koha-testing:main-bullseye
-  only:
-    - main@koha-community/koha-testing-docker
-
-focal:
-  stage: build
-  script:
-  - docker build -t koha/koha-testing:main-focal --no-cache --rm -f dists/focal/Dockerfile .
-  - docker push koha/koha-testing:main-focal
-  - docker image rm koha/koha-testing:main-focal
-  only:
-    - main@koha-community/koha-testing-docker
-
-jammy:
-  stage: build
-  script:
-  - docker build -t koha/koha-testing:main-jammy --no-cache --rm -f dists/jammy/Dockerfile .
-  - docker push koha/koha-testing:main-jammy
-  - docker image rm koha/koha-testing:main-jammy
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-bullseye
+      --file dists/bullseye/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
 noble:
   stage: build
   script:
-  - docker build -t koha/koha-testing:main-noble --no-cache --rm -f dists/noble/Dockerfile .
-  - docker push koha/koha-testing:main-noble
-  - docker image rm koha/koha-testing:main-noble
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-noble
+      --file dists/noble/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
-# -----------------------------------
-# armd64 jobs
-
-bullseye-arm64v8:
-  image: arm64v8/docker
+jammy:
   stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  tags:
-    - saas-linux-medium-arm64
   script:
-  - docker build -t koha/koha-testing:main-bullseye-arm64v8 --no-cache --rm -f dists/arm64v8/bullseye/Dockerfile .
-  - docker push koha/koha-testing:main-bullseye-arm64v8
-  - docker image rm koha/koha-testing:main-bullseye-arm64v8
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-jammy
+      --file dists/jammy/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
-bookworm-arm64v8:
-  image: arm64v8/docker
+focal:
   stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  tags:
-    - saas-linux-medium-arm64
   script:
-  - docker build -t koha/koha-testing:main-bookworm-arm64v8 --no-cache --rm -f dists/arm64v8/bookworm/Dockerfile .
-  - docker push koha/koha-testing:main-bookworm-arm64v8
-  - docker image rm koha/koha-testing:main-bookworm-arm64v8
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-focal
+      --file dists/focal/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
-trixie-arm64v8:
-  image: arm64v8/docker
+lunar:
   stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  tags:
-    - saas-linux-medium-arm64
   script:
-  - docker build -t koha/koha-testing:main-trixie-arm64v8 --no-cache --rm -f dists/arm64v8/trixie/Dockerfile .
-  - docker push koha/koha-testing:main-trixie-arm64v8
-  - docker image rm koha/koha-testing:main-trixie-arm64v8
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-lunar
+      --file dists/lunar/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
 
-focal-arm64v8:
-  image: arm64v8/docker
+sid:
   stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  tags:
-    - saas-linux-medium-arm64
   script:
-  - docker build -t koha/koha-testing:main-focal-arm64v8 --no-cache --rm -f dists/arm64v8/focal/Dockerfile .
-  - docker push koha/koha-testing:main-focal-arm64v8
-  - docker image rm koha/koha-testing:main-focal-arm64v8
-  only:
-    - main@koha-community/koha-testing-docker
-
-noble-arm64v8:
-  image: arm64v8/docker
-  stage: build
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-  tags:
-    - saas-linux-medium-arm64
-  script:
-  - docker build -t koha/koha-testing:main-noble-arm64v8 --no-cache --rm -f dists/arm64v8/noble/Dockerfile .
-  - docker push koha/koha-testing:main-noble-arm64v8
-  - docker image rm koha/koha-testing:main-noble-arm64v8
+    - docker buildx build --platform linux/amd64,linux/arm64/v8 
+      --tag koha/koha-testing:main-sid
+      --file dists/sid/Dockerfile
+      --push .
   only:
     - main@koha-community/koha-testing-docker
