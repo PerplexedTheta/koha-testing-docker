@@ -21,6 +21,7 @@ before_script:
 # Multi-arch builds
 trixie:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-trixie
@@ -31,6 +32,7 @@ trixie:
 
 bookworm:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-bookworm
@@ -41,6 +43,7 @@ bookworm:
 
 bullseye:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-bullseye
@@ -51,6 +54,7 @@ bullseye:
 
 noble:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-noble
@@ -61,6 +65,7 @@ noble:
 
 jammy:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-jammy
@@ -71,6 +76,7 @@ jammy:
 
 focal:
   stage: build
+  tags: [saas-linux-large-amd64]
   script:
     - docker buildx build --platform linux/amd64,linux/arm64/v8 
       --tag koha/koha-testing:main-focal
@@ -79,9 +85,10 @@ focal:
   only:
     - main@koha-community/koha-testing-docker
 
-## Restore once we remove Cypress
+## Restore once we remove Cypress
 # sid:
 #   stage: build
+#   tags: [saas-linux-large-amd64]
 #   script:
 #     - docker buildx build --platform linux/amd64,linux/arm64/v8 
 #       --tag koha/koha-testing:main-sid
