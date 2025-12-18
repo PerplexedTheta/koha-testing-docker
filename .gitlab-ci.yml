@@ -11,6 +11,8 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_DRIVER: overlay2
   FF_NETWORK_PER_BUILD: 1
+  # Change this to make a different distro the default 'main' tag
+  DEFAULT_DISTRO: bookworm
 
 before_script:
   - echo "$GITLAB_REGISTRY_TOKEN" | docker login -u "$GITLAB_REGISTRY_USER" --password-stdin $CI_REGISTRY
@@ -47,10 +49,6 @@ before_script:
   services:
     - docker:dind
   script:
-    # Login to both registries
-    - echo "$GITLAB_REGISTRY_TOKEN" | docker login -u "$GITLAB_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-    
     # Pull from GitLab
     - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64
     - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64
@@ -69,6 +67,15 @@ before_script:
         koha/koha-testing:temp-arm64-${CI_PIPELINE_ID}
     - docker manifest push koha/koha-testing:main-${CI_JOB_NAME}
     
+    # Create 'main' alias if this is the default distro
+    - |
+      if [ "${CI_JOB_NAME}" = "${DEFAULT_DISTRO}" ]; then
+        docker manifest create koha/koha-testing:main \
+          koha/koha-testing:temp-amd64-${CI_PIPELINE_ID} \
+          koha/koha-testing:temp-arm64-${CI_PIPELINE_ID}
+        docker manifest push koha/koha-testing:main
+      fi
+
     # Clean up temp tags
     - docker run --rm lumir/remove-dockerhub-tag
         --user $REGISTRY_USER --password $REGISTRY_PASSWORD
@@ -97,114 +104,111 @@ trixie-manifest:
     - trixie-amd64
     - trixie-arm64
 
-# bookworm-amd64:
-#   extends: .build-amd64
-#   variables:
-#     CI_JOB_NAME: bookworm
+bookworm-amd64:
+  extends: .build-amd64
+  variables:
+    CI_JOB_NAME: bookworm
 
-# bookworm-arm64:
-#   extends: .build-arm64
-#   variables:
-#     CI_JOB_NAME: bookworm
+bookworm-arm64:
+  extends: .build-arm64
+  variables:
+    CI_JOB_NAME: bookworm
 
-# bookworm-manifest:
-#   extends: .create-manifest
-#   variables:
-#     CI_JOB_NAME: bookworm
-#   script:
-#     - docker manifest create koha/koha-testing:main-bookworm
-#       $CI_REGISTRY_IMAGE:bookworm-amd64
-#       $CI_REGISTRY_IMAGE:bookworm-arm64
-#     - docker manifest push koha/koha-testing:main-bookworm
-#     # Create 'main' alias
-#     - docker manifest create koha/koha-testing:main
-#       $CI_REGISTRY_IMAGE:bookworm-amd64
-#       $CI_REGISTRY_IMAGE:bookworm-arm64
-#     - docker manifest push koha/koha-testing:main
-#   needs:
-#     - bookworm-amd64
-#     - bookworm-arm64
+bookworm-manifest:
+  extends: .create-manifest
+  variables:
+    CI_JOB_NAME: bookworm
+  needs:
+    - bookworm-amd64
+    - bookworm-arm64
 
-# bullseye-amd64:
-#   extends: .build-amd64
-#   variables:
-#     CI_JOB_NAME: bullseye
+bullseye-amd64:
+  extends: .build-amd64
+  variables:
+    CI_JOB_NAME: bullseye
 
-# bullseye-arm64:
-#   extends: .build-arm64
-#   variables:
-#     CI_JOB_NAME: bullseye
+bullseye-arm64:
+  extends: .build-arm64
+  variables:
+    CI_JOB_NAME: bullseye
 
-# bullseye-manifest:
-#   extends: .create-manifest
-#   variables:
-#     CI_JOB_NAME: bullseye
-#   needs:
-#     - bullseye-amd64
-#     - bullseye-arm64
+bullseye-manifest:
+  extends: .create-manifest
+  variables:
+    CI_JOB_NAME: bullseye
+  needs:
+    - bullseye-amd64
+    - bullseye-arm64
 
-# noble-amd64:
-#   extends: .build-amd64
-#   variables:
-#     CI_JOB_NAME: noble
+noble-amd64:
+  extends: .build-amd64
+  variables:
+    CI_JOB_NAME: noble
 
-# noble-arm64:
-#   extends: .build-arm64
-#   variables:
-#     CI_JOB_NAME: noble
+noble-arm64:
+  extends: .build-arm64
+  variables:
+    CI_JOB_NAME: noble
 
-# noble-manifest:
-#   extends: .create-manifest
-#   variables:
-#     CI_JOB_NAME: noble
-#   needs:
-#     - noble-amd64
-#     - noble-arm64
+noble-manifest:
+  extends: .create-manifest
+  variables:
+    CI_JOB_NAME: noble
+  needs:
+    - noble-amd64
+    - noble-arm64
 
-# jammy-amd64:
-#   extends: .build-amd64
-#   variables:
-#     CI_JOB_NAME: jammy
+jammy-amd64:
+  extends: .build-amd64
+  variables:
+    CI_JOB_NAME: jammy
 
-# jammy-arm64:
-#   extends: .build-arm64
-#   variables:
-#     CI_JOB_NAME: jammy
+jammy-arm64:
+  extends: .build-arm64
+  variables:
+    CI_JOB_NAME: jammy
 
-# jammy-manifest:
-#   extends: .create-manifest
-#   variables:
-#     CI_JOB_NAME: jammy
-#   needs:
-#     - jammy-amd64
-#     - jammy-arm64
+jammy-manifest:
+  extends: .create-manifest
+  variables:
+    CI_JOB_NAME: jammy
+  needs:
+    - jammy-amd64
+    - jammy-arm64
 
-# focal-amd64:
-#   extends: .build-amd64
-#   variables:
-#     CI_JOB_NAME: focal
+focal-amd64:
+  extends: .build-amd64
+  variables:
+    CI_JOB_NAME: focal
 
-# focal-arm64:
-#   extends: .build-arm64
-#   variables:
-#     CI_JOB_NAME: focal
+focal-arm64:
+  extends: .build-arm64
+  variables:
+    CI_JOB_NAME: focal
 
-# focal-manifest:
-#   extends: .create-manifest
-#   variables:
-#     CI_JOB_NAME: focal
-#   needs:
-#     - focal-amd64
-#     - focal-arm64
+focal-manifest:
+  extends: .create-manifest
+  variables:
+    CI_JOB_NAME: focal
+  needs:
+    - focal-amd64
+    - focal-arm64
 
 ## Restore once we remove Cypress
-# sid:
-#   stage: build
-#   tags: [saas-linux-large-amd64]
-#   script:
-#     - docker buildx build --platform linux/amd64,linux/arm64/v8 
-#       --tag koha/koha-testing:main-sid
-#       --file dists/sid/Dockerfile
-#       --push .
-#   only:
-#     - main@koha-community/koha-testing-docker
+# sid-amd64:
+#   extends: .build-amd64
+#   variables:
+#     CI_JOB_NAME: sid
+
+# sid-arm64:
+#   extends: .build-arm64
+#   variables:
+#     CI_JOB_NAME: sid
+
+# sid-manifest:
+#   extends: .create-manifest
+#   variables:
+#     CI_JOB_NAME: sid
+#   needs:
+#     - sid-amd64
+#     - sid-arm64
