@@ -40,19 +40,28 @@ before_script:
   only:
     - main@koha-community/koha-testing-docker
 
-# Manifest creation - use buildx imagetools to combine cross-registry images
+# Manifest creation - pull from GitLab, retag locally, create manifest on Docker Hub
 .create-manifest:
   stage: manifest
   tags: [saas-linux-medium-amd64]
   before_script:
     - echo "$GITLAB_REGISTRY_TOKEN" | docker login -u "$GITLAB_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "$REGISTRY_PASSWORD" | docker login -u "$REGISTRY_USER" --password-stdin
-    - docker buildx create --use --name multiarch || docker buildx use multiarch
   script:
-    - docker buildx imagetools create 
-      --tag koha/koha-testing:main-${CI_JOB_NAME}
-      $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64
-      $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64
+    # Pull images from GitLab registry
+    - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64
+    - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64
+    # Retag for Docker Hub
+    - docker tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64 koha/koha-testing:${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
+    - docker tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64 koha/koha-testing:${CI_JOB_NAME}-arm64-${CI_PIPELINE_ID}
+    # Push temporary tags
+    - docker push koha/koha-testing:${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
+    - docker push koha/koha-testing:${CI_JOB_NAME}-arm64-${CI_PIPELINE_ID}
+    # Create manifest using Docker Hub images
+    - docker manifest create koha/koha-testing:main-${CI_JOB_NAME}
+      koha/koha-testing:${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
+      koha/koha-testing:${CI_JOB_NAME}-arm64-${CI_PIPELINE_ID}
+    - docker manifest push koha/koha-testing:main-${CI_JOB_NAME}
   only:
     - main@koha-community/koha-testing-docker
 
