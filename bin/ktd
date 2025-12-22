@@ -290,15 +290,16 @@ while [ $# -gt 0 ]; do
                     echo "  mysql   - MySQL database (default: mysql:8.0)"
                     echo ""
                     echo "MariaDB version mapping (when DB_IMAGE not set):"
-                    echo "  Debian 13 (trixie) / Debian 12 (bookworm) / main → mariadb:10.11"
+                    echo "  Debian 13 (trixie) / Debian 12 (bookworm) / main  → mariadb:10.11"
                     echo "  Debian 11 (bullseye)                              → mariadb:10.5"
                     echo "  Debian 10 (buster)                                → mariadb:10.3"
-                    echo "  Ubuntu 24.04 (noble) / Ubuntu 22.04 (jammy)       → mariadb:10.6"
+                    echo "  Ubuntu 24.04 (noble)                              → mariadb:10.11"
+                    echo "  Ubuntu 22.04 (jammy)                              → mariadb:10.6"
                     echo "  Ubuntu 20.04 (focal)                              → mariadb:10.3"
                     echo "  Ubuntu 18.04 (bionic)                             → mariadb:10.1"
                     echo ""
                     echo "Override examples:"
-                    echo "  DB_IMAGE=mysql:8.4 ktd up          # Auto-detects mysql engine"
+                    echo "  DB_IMAGE=mysql:8.0 ktd up          # Auto-detects mysql engine"
                     echo "  DB_IMAGE=mariadb:11.0 ktd up       # Override MariaDB version"
                     echo "  ktd --db-engine mysql up           # Force mysql with default version"
                     exit 0
@@ -430,7 +431,10 @@ if [ -z "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" = "mariadb" ]; then
         *-stretch*|*-d9*)
             DB_IMAGE="mariadb:10.1"
             ;;
-        *-noble*|*-u24*|*-jammy*|*-u22*)
+        *-noble*|*-u24*)
+            DB_IMAGE="mariadb:10.11"
+            ;;
+        *-jammy*|*-u22*)
             DB_IMAGE="mariadb:10.6"
             ;;
         *-focal*|*-u20*)
@@ -441,7 +445,7 @@ if [ -z "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" = "mariadb" ]; then
             ;;
         *)
             # Default for unknown OS versions
-            DB_IMAGE="mariadb:10.5"
+            DB_IMAGE="mariadb:10.11"
             ;;
     esac
     export DB_IMAGE
