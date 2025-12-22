@@ -489,9 +489,9 @@ else
             cd "${KTD_HOME}"
 
             if [ "${USE_PROXY}" != "yes" ]; then
-                COMPOSE_OPTIONS='-f docker-compose-light.yml'
+                COMPOSE_OPTIONS='-f compose/base.yml'
             else
-                COMPOSE_OPTIONS='-f docker-compose-proxy.yml'
+                COMPOSE_OPTIONS='-f compose/base-proxy.yml'
             fi
 
             for file in "${COMPOSE_FILES[@]}"; do
