@@ -308,16 +308,21 @@ while [ $# -gt 0 ]; do
             case "$2" in
                 list)
                     echo "Valid database engines:"
-                    echo "  mariadb - MariaDB database (default: mariadb:10.5)"
+                    echo "  mariadb - MariaDB database (version auto-selected based on KOHA_IMAGE OS)"
                     echo "  mysql   - MySQL database (default: mysql:8.0)"
                     echo ""
-                    echo "Auto-detection: KTD automatically detects engine from DB_IMAGE:"
-                    echo "  DB_IMAGE=mysql:8.4 ktd up          # Auto-detects mysql engine"
-                    echo "  DB_IMAGE=mariadb:11.0 ktd up       # Auto-detects mariadb engine"
-                    echo "  DB_IMAGE=percona:8.0 ktd up        # Auto-detects mysql engine"
+                    echo "MariaDB version mapping (when DB_IMAGE not set):"
+                    echo "  Debian 13 (trixie) / Debian 12 (bookworm) / main → mariadb:10.11"
+                    echo "  Debian 11 (bullseye)                              → mariadb:10.5"
+                    echo "  Debian 10 (buster)                                → mariadb:10.3"
+                    echo "  Ubuntu 24.04 (noble) / Ubuntu 22.04 (jammy)       → mariadb:10.6"
+                    echo "  Ubuntu 20.04 (focal)                              → mariadb:10.3"
+                    echo "  Ubuntu 18.04 (bionic)                             → mariadb:10.1"
                     echo ""
-                    echo "Manual override (optional):"
-                    echo "  ktd --db-engine mysql up           # Force mysql engine"
+                    echo "Override examples:"
+                    echo "  DB_IMAGE=mysql:8.4 ktd up          # Auto-detects mysql engine"
+                    echo "  DB_IMAGE=mariadb:11.0 ktd up       # Override MariaDB version"
+                    echo "  ktd --db-engine mysql up           # Force mysql with default version"
                     exit 0
                     ;;
                 mariadb|mysql)
@@ -430,6 +435,38 @@ if [ "$ENABLED_DB_ENGINE" == "" ]; then
     else
         ENABLED_DB_ENGINE="mariadb"
     fi
+fi
+
+# Set default DB_IMAGE based on KOHA_IMAGE OS if not specified
+if [ -z "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" = "mariadb" ]; then
+    case "$KOHA_IMAGE" in
+        *-trixie*|*-d13*|*-bookworm*|*-d12*|main)
+            DB_IMAGE="mariadb:10.11"
+            ;;
+        *-bullseye*|*-d11*)
+            DB_IMAGE="mariadb:10.5"
+            ;;
+        *-buster*|*-d10*)
+            DB_IMAGE="mariadb:10.3"
+            ;;
+        *-stretch*|*-d9*)
+            DB_IMAGE="mariadb:10.1"
+            ;;
+        *-noble*|*-u24*|*-jammy*|*-u22*)
+            DB_IMAGE="mariadb:10.6"
+            ;;
+        *-focal*|*-u20*)
+            DB_IMAGE="mariadb:10.3"
+            ;;
+        *-bionic*|*-u18*)
+            DB_IMAGE="mariadb:10.1"
+            ;;
+        *)
+            # Default for unknown OS versions
+            DB_IMAGE="mariadb:10.5"
+            ;;
+    esac
+    export DB_IMAGE
 fi
 
 # Validate DB_IMAGE and --db-engine compatibility
