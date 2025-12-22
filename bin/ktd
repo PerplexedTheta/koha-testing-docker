@@ -29,9 +29,9 @@ This script lets you manage your KTD environment.
 
 Usage:
 
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] up -d
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] up -d
     $scriptname down [instance_name|--all]
-    $scriptname [--es6|--es7|--es8|--os1|--os2|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] pull
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
     $scriptname --logs
@@ -39,11 +39,12 @@ Usage:
 
 Options:
 
-    --es6                 Use an Elasticsearch 6.x container
-    --es7                 Use an Elasticsearch 7.x container
-    --es8                 Use an Elasticsearch 8.x container
-    --os1                 Use an OpenSearch 1.x container
-    --os2                 Use an OpenSearch 2.x container
+    --es6                 DEPRECATED: Use --search-engine es6
+    --es7                 DEPRECATED: Use --search-engine es7
+    --es8                 DEPRECATED: Use --search-engine es8
+    --os1                 DEPRECATED: Use --search-engine os1
+    --os2                 DEPRECATED: Use --search-engine os2
+    --search-engine ENGINE Use specified search engine (use 'list' to see options)
     --plugins             Enable plugin development environment
     --single-plugin PATH  Mount a single plugin from PATH to /kohadevbox/plugins/
     --selenium            Use a Selenium container
@@ -120,30 +121,45 @@ set_searchengine()
 
         ENABLED_SEARCHENGINE=$1
 
-        if [ "$ENABLED_SEARCHENGINE" = "os1" ]; then
-            ES_IMAGE="koha/elasticsearch-icu:opensearch-1.x"
-            ES_IMAGE_TYPE="opensearch"
+        if [ "$ENABLED_SEARCHENGINE" = "zebra" ]; then
+            # Zebra is the default, no SEARCH_ENGINE_IMAGE needed
+            SEARCH_ENGINE_IMAGE=""
+            SEARCH_ENGINE_TYPE=""
+        elif [ "$ENABLED_SEARCHENGINE" = "os1" ]; then
+            SEARCH_ENGINE_IMAGE="koha/opensearch-icu:1"
+            SEARCH_ENGINE_TYPE="opensearch"
         elif [ "$ENABLED_SEARCHENGINE" = "os2" ]; then
-            ES_IMAGE="koha/elasticsearch-icu:opensearch-2.x"
-            ES_IMAGE_TYPE="opensearch"
+            SEARCH_ENGINE_IMAGE="koha/opensearch-icu:2"
+            SEARCH_ENGINE_TYPE="opensearch"
+        elif [ "$ENABLED_SEARCHENGINE" = "os3" ]; then
+            SEARCH_ENGINE_IMAGE="koha/opensearch-icu:3"
+            SEARCH_ENGINE_TYPE="opensearch"
         elif [ "$ENABLED_SEARCHENGINE" = "es6" ]; then
-            ES_IMAGE="koha/elasticsearch-icu:6.x"
-            ES_IMAGE_TYPE="elastic"
+            SEARCH_ENGINE_IMAGE="koha/elasticsearch-icu:6"
+            SEARCH_ENGINE_TYPE="elastic"
         elif [ "$ENABLED_SEARCHENGINE" = "es7" ]; then
-            ES_IMAGE="koha/elasticsearch-icu:7.x"
-            ES_IMAGE_TYPE="elastic"
+            SEARCH_ENGINE_IMAGE="koha/elasticsearch-icu:7"
+            SEARCH_ENGINE_TYPE="elastic"
         elif [ "$ENABLED_SEARCHENGINE" = "es8" ]; then
-            ES_IMAGE="koha/elasticsearch-icu:8.x"
-            ES_IMAGE_TYPE="elastic"
+            SEARCH_ENGINE_IMAGE="koha/elasticsearch-icu:8"
+            SEARCH_ENGINE_TYPE="elastic"
+        elif [ "$ENABLED_SEARCHENGINE" = "es9" ]; then
+            SEARCH_ENGINE_IMAGE="koha/elasticsearch-icu:9"
+            SEARCH_ENGINE_TYPE="elastic"
         fi
 
-        if [ "$ARCH" = "arm64v8" ] ; then
-            export ES_IMAGE="${ES_IMAGE}-arm64"
-        else
-            export ES_IMAGE="${ES_IMAGE}"
+        # Check for environment variable override
+        if [ -n "$KOHA_SEARCH_ENGINE_IMAGE" ]; then
+            SEARCH_ENGINE_IMAGE="$KOHA_SEARCH_ENGINE_IMAGE"
         fi
 
-        export ES_IMAGE_TYPE=$ES_IMAGE_TYPE
+        # Multi-arch images don't need arch suffix anymore
+        export SEARCH_ENGINE_IMAGE="${SEARCH_ENGINE_IMAGE}"
+        export SEARCH_ENGINE_TYPE=$SEARCH_ENGINE_TYPE
+        
+        # Keep ES_IMAGE for backward compatibility
+        export ES_IMAGE="${SEARCH_ENGINE_IMAGE}"
+        export ES_IMAGE_TYPE=$SEARCH_ENGINE_TYPE
     else
         printf "\nError: only one search engine option is allowed (you passed $ENABLED_SEARCHENGINE and $1)\n\n"
         usage
@@ -199,6 +215,7 @@ ENV_DB_IMAGE=$DB_IMAGE
 ENV_ES_IMAGE=$ES_IMAGE
 ENV_KOHA_IMAGE=$KOHA_IMAGE
 ENV_KOHA_MARC_FLAVOUR=$KOHA_MARC_FLAVOUR
+ENV_KOHA_SEARCH_ENGINE_IMAGE=$KOHA_SEARCH_ENGINE_IMAGE
 
 source $KTD_HOME/.env
 
@@ -207,6 +224,7 @@ source $KTD_HOME/.env
 [ "$ENV_ES_IMAGE"          != "" ] &&          ES_IMAGE=$ENV_ES_IMAGE
 [ "$ENV_KOHA_IMAGE"        != "" ] &&        KOHA_IMAGE=$ENV_KOHA_IMAGE
 [ "$ENV_KOHA_MARC_FLAVOUR" != "" ] && KOHA_MARC_FLAVOUR=$ENV_KOHA_MARC_FLAVOUR
+[ "$ENV_KOHA_SEARCH_ENGINE_IMAGE" != "" ] && KOHA_SEARCH_ENGINE_IMAGE=$ENV_KOHA_SEARCH_ENGINE_IMAGE
 
 set_docker
 set_arch
@@ -224,7 +242,7 @@ ENABLE_BUILD_IMAGE="no"
 PERSISTENT_DB="no"
 BIND_LOCAL_DB="no"
 
-KOHA_ELASTICSEARCH="no"
+KOHA_SEARCH_ENGINE_ENABLED="no"
 
 PROJECT_NAME="kohadev"
 
@@ -253,20 +271,44 @@ while [ $# -gt 0 ]; do
             FOLLOW_LOGS="yes"
             break ;;
         --es6)
-            set_searchengine "es6"
-            shift ;;
+            printf "\nDEPRECATION WARNING: --es6 is deprecated. Use '--search-engine es6' instead.\n\n"
+            exit 1 ;;
         --es7)
-            set_searchengine "es7"
-            shift ;;
+            printf "\nDEPRECATION WARNING: --es7 is deprecated. Use '--search-engine es7' instead.\n\n"
+            exit 1 ;;
         --es8)
-            set_searchengine "es8"
-            shift ;;
+            printf "\nDEPRECATION WARNING: --es8 is deprecated. Use '--search-engine es8' instead.\n\n"
+            exit 1 ;;
         --os1)
-            set_searchengine "os1"
-            shift ;;
+            printf "\nDEPRECATION WARNING: --os1 is deprecated. Use '--search-engine os1' instead.\n\n"
+            exit 1 ;;
         --os2)
-            set_searchengine "os2"
-            shift ;;
+            printf "\nDEPRECATION WARNING: --os2 is deprecated. Use '--search-engine os2' instead.\n\n"
+            exit 1 ;;
+        --search-engine)
+            case "$2" in
+                list)
+                    echo "Valid search engines:"
+                    echo "  zebra  - Zebra search engine (default)"
+                    echo "  es6    - Elasticsearch 6.x"
+                    echo "  es7    - Elasticsearch 7.x"
+                    echo "  es8    - Elasticsearch 8.x"
+                    echo "  es9    - Elasticsearch 9.x"
+                    echo "  os1    - OpenSearch 1.x"
+                    echo "  os2    - OpenSearch 2.x"
+                    echo "  os3    - OpenSearch 3.x"
+                    exit 0
+                    ;;
+                zebra|es6|es7|es8|es9|os1|os2|os3)
+                    set_searchengine "$2"
+                    ;;
+                *)
+                    printf "\nError: invalid search engine '$2'. Use '--search-engine list' to see valid options.\n\n"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            shift 2 ;;
         --persistent-db)
             PERSISTENT_DB="yes"
             shift ;;
@@ -338,6 +380,11 @@ while [ $# -gt 0 ]; do
     esac
 
 done
+
+# Set default search engine to zebra if none specified
+if [ "$ENABLED_SEARCHENGINE" == "" ]; then
+    set_searchengine "zebra"
+fi
 
 if [ "$LIST_INSTANCES" != "no" ]; then
     # Define colors where we need them
@@ -451,9 +498,9 @@ else
                 COMPOSE_OPTIONS+=" -f $file"
             done
 
-            if [ "$ENABLED_SEARCHENGINE" != "" ]; then
-                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/${ES_IMAGE_TYPE}.yml"
-                KOHA_ELASTICSEARCH="yes"
+            if [ "$ENABLED_SEARCHENGINE" != "" ] && [ "$ENABLED_SEARCHENGINE" != "zebra" ]; then
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/${SEARCH_ENGINE_TYPE}.yml"
+                KOHA_SEARCH_ENGINE_ENABLED="yes"
             fi
 
             if [ "$ENABLE_PLUGINS" != "no" ]; then
@@ -509,7 +556,9 @@ else
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/localrun.yml"
             fi
 
-            export KOHA_ELASTICSEARCH="${KOHA_ELASTICSEARCH}"
+            export KOHA_SEARCH_ENGINE_ENABLED="${KOHA_SEARCH_ENGINE_ENABLED}"
+            # Keep KOHA_ELASTICSEARCH for backward compatibility (used in run.sh)
+            export KOHA_ELASTICSEARCH="${KOHA_SEARCH_ENGINE_ENABLED}"
             export KOHA_MARC_FLAVOUR="${KOHA_MARC_FLAVOUR}"
 
             COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -p ${PROJECT_NAME}"
