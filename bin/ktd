@@ -193,12 +193,6 @@ set_image()
         elif [ "$KOHA_IMAGE" == "24.11" ] ; then
             export KOHA_IMAGE="24.11-bookworm-arm64v8"
         fi
-
-        if [ "$DB_IMAGE" != "" ]; then # leave alone if empty
-            if echo $DB_IMAGE | grep -v -q 'arm64v8'; then
-                export DB_IMAGE="arm64v8/${DB_IMAGE}"
-            fi
-        fi
     fi
 }
 
