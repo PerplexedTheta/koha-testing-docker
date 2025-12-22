@@ -290,13 +290,14 @@ while [ $# -gt 0 ]; do
                     echo "  mysql   - MySQL database (default: mysql:8.0)"
                     echo ""
                     echo "MariaDB version mapping (when DB_IMAGE not set):"
-                    echo "  Debian 13 (trixie) / Debian 12 (bookworm) / main  → mariadb:10.11"
-                    echo "  Debian 11 (bullseye)                              → mariadb:10.5"
-                    echo "  Debian 10 (buster)                                → mariadb:10.3"
-                    echo "  Ubuntu 24.04 (noble)                              → mariadb:10.11"
-                    echo "  Ubuntu 22.04 (jammy)                              → mariadb:10.6"
-                    echo "  Ubuntu 20.04 (focal)                              → mariadb:10.3"
-                    echo "  Ubuntu 18.04 (bionic)                             → mariadb:10.1"
+                    echo "  Debian 13 (trixie)                 → mariadb:11.8"
+                    echo "  Debian 12 (bookworm)               → mariadb:10.11"
+                    echo "  Debian 11 (bullseye)               → mariadb:10.5"
+                    echo "  Debian 10 (buster)                 → mariadb:10.3"
+                    echo "  Ubuntu 24.04 (noble)               → mariadb:10.11"
+                    echo "  Ubuntu 22.04 (jammy)               → mariadb:10.6"
+                    echo "  Ubuntu 20.04 (focal)               → mariadb:10.3"
+                    echo "  Ubuntu 18.04 (bionic)              → mariadb:10.1"
                     echo ""
                     echo "Override examples:"
                     echo "  DB_IMAGE=mysql:8.0 ktd up          # Auto-detects mysql engine"
@@ -419,7 +420,10 @@ fi
 # Set default DB_IMAGE based on KOHA_IMAGE OS if not specified
 if [ -z "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" = "mariadb" ]; then
     case "$KOHA_IMAGE" in
-        *-trixie*|*-d13*|*-bookworm*|*-d12*|main)
+        *-trixie*|*-d13*)
+            DB_IMAGE="mariadb:11.8"
+            ;;
+        *-bookworm*|*-d12*|main)
             DB_IMAGE="mariadb:10.11"
             ;;
         *-bullseye*|*-d11*)
