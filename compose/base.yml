@@ -1,6 +1,6 @@
 services:
     koha:
-        image: koha/koha-testing:${KOHA_IMAGE}
+        image: koha/koha-testing:${KOHA_IMAGE:-main}
         depends_on:
             - db
             - memcached

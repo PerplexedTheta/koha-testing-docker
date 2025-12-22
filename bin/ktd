@@ -392,6 +392,12 @@ while [ $# -gt 0 ]; do
 
 done
 
+# Set default KOHA_IMAGE to main if not specified
+if [ -z "$KOHA_IMAGE" ]; then
+    KOHA_IMAGE="main"
+    export KOHA_IMAGE
+fi
+
 # Set default search engine to zebra if none specified
 if [ "$ENABLED_SEARCHENGINE" == "" ]; then
     set_searchengine "zebra"
@@ -419,7 +425,10 @@ fi
 
 # Set default DB_IMAGE based on KOHA_IMAGE OS if not specified
 if [ -z "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" = "mariadb" ]; then
-    case "$KOHA_IMAGE" in
+    # Default KOHA_IMAGE to main if not set
+    KOHA_IMAGE_FOR_DB="${KOHA_IMAGE:-main}"
+
+    case "$KOHA_IMAGE_FOR_DB" in
         *-trixie*|*-d13*)
             DB_IMAGE="mariadb:11.8"
             ;;
