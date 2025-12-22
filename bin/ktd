@@ -174,21 +174,6 @@ set_arch()
     export ARCH=$ARCH
 }
 
-set_image()
-{
-    if [ "$ARCH" = "arm64v8" ] ; then
-
-        # if main, then explicitly set to main-bookworm
-        if [ "$KOHA_IMAGE" == "main" ] || [ -z "${KOHA_IMAGE}" ] ; then
-            export KOHA_IMAGE="main-bookworm-arm64v8"
-        elif [ "$KOHA_IMAGE" == "25.05" ] ; then
-            export KOHA_IMAGE="25.05-bookworm-arm64v8"
-        elif [ "$KOHA_IMAGE" == "24.11" ] ; then
-            export KOHA_IMAGE="24.11-bookworm-arm64v8"
-        fi
-    fi
-}
-
 toggle_plugins()
 {
     if [ "$SINGLE_PLUGIN_PATH" != "" ] && [ "$ENABLE_PLUGINS" != "no" ]; then
@@ -576,9 +561,6 @@ else
                 usage
                 exit 1
             fi
-
-            # tweak used images
-            set_image
 
             # save current working directory
             current_dir=$(pwd)
