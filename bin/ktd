@@ -45,6 +45,7 @@ Options:
     --os1                 DEPRECATED: Use --search-engine os1
     --os2                 DEPRECATED: Use --search-engine os2
     --search-engine ENGINE Use specified search engine (use 'list' to see options)
+    --db-engine ENGINE     Use specified database engine (mariadb, mysql) - auto-detected from DB_IMAGE if not specified
     --plugins             Enable plugin development environment
     --single-plugin PATH  Mount a single plugin from PATH to /kohadevbox/plugins/
     --selenium            Use a Selenium container
@@ -68,6 +69,8 @@ Environment variables:
 
     KTD_HOME              Mandatory. Needs to point to a clone of koha-testing-docker
     KTD_PROJECT           Optional. For using with the compose -p option (default: 'koha')
+    DB_IMAGE              Optional. Override database image (e.g., mariadb:11.0, mysql:8.4)
+    KOHA_SEARCH_ENGINE_IMAGE Optional. Override search engine image
 
 Note: --es6, --es7, --es8, --os1 and --os2 are mutually exclussive.
 
@@ -229,6 +232,7 @@ set_arch
 WAIT_READY="no"
 
 ENABLED_SEARCHENGINE=""
+ENABLED_DB_ENGINE=""
 
 ENABLE_PLUGINS="no"
 SINGLE_PLUGIN_PATH=""
@@ -301,6 +305,37 @@ while [ $# -gt 0 ]; do
                     ;;
                 *)
                     printf "\nError: invalid search engine '$2'. Use '--search-engine list' to see valid options.\n\n"
+                    usage
+                    exit 1
+                    ;;
+            esac
+            shift 2 ;;
+        --db-engine)
+            case "$2" in
+                list)
+                    echo "Valid database engines:"
+                    echo "  mariadb - MariaDB database (default: mariadb:10.5)"
+                    echo "  mysql   - MySQL database (default: mysql:8.0)"
+                    echo ""
+                    echo "Auto-detection: KTD automatically detects engine from DB_IMAGE:"
+                    echo "  DB_IMAGE=mysql:8.4 ktd up          # Auto-detects mysql engine"
+                    echo "  DB_IMAGE=mariadb:11.0 ktd up       # Auto-detects mariadb engine"
+                    echo "  DB_IMAGE=percona:8.0 ktd up        # Auto-detects mysql engine"
+                    echo ""
+                    echo "Manual override (optional):"
+                    echo "  ktd --db-engine mysql up           # Force mysql engine"
+                    exit 0
+                    ;;
+                mariadb|mysql)
+                    if [ "$ENABLED_DB_ENGINE" != "" ]; then
+                        printf "\nError: only one database engine option is allowed\n\n"
+                        usage
+                        exit 1
+                    fi
+                    ENABLED_DB_ENGINE="$2"
+                    ;;
+                *)
+                    printf "\nError: invalid database engine '$2'. Use '--db-engine list' to see valid options.\n\n"
                     usage
                     exit 1
                     ;;
@@ -381,6 +416,46 @@ done
 # Set default search engine to zebra if none specified
 if [ "$ENABLED_SEARCHENGINE" == "" ]; then
     set_searchengine "zebra"
+fi
+
+# Set default database engine based on DB_IMAGE if not specified
+if [ "$ENABLED_DB_ENGINE" == "" ]; then
+    if [ -n "$DB_IMAGE" ]; then
+        case "$DB_IMAGE" in
+            mysql:*|percona:*|mysql/*|percona/*)
+                ENABLED_DB_ENGINE="mysql"
+                ;;
+            mariadb:*|mariadb/*)
+                ENABLED_DB_ENGINE="mariadb"
+                ;;
+            *)
+                # Default to mariadb for unknown images
+                ENABLED_DB_ENGINE="mariadb"
+                ;;
+        esac
+    else
+        ENABLED_DB_ENGINE="mariadb"
+    fi
+fi
+
+# Validate DB_IMAGE and --db-engine compatibility
+if [ -n "$DB_IMAGE" ] && [ "$ENABLED_DB_ENGINE" != "" ]; then
+    case "$DB_IMAGE" in
+        mysql:*|percona:*|mysql/*|percona/*)
+            if [ "$ENABLED_DB_ENGINE" != "mysql" ]; then
+                printf "\nError: DB_IMAGE '$DB_IMAGE' is not compatible with --db-engine $ENABLED_DB_ENGINE\n"
+                printf "Suggestion: Use --db-engine mysql or remove --db-engine (auto-detected)\n\n"
+                exit 1
+            fi
+            ;;
+        mariadb:*|mariadb/*)
+            if [ "$ENABLED_DB_ENGINE" != "mariadb" ]; then
+                printf "\nError: DB_IMAGE '$DB_IMAGE' is not compatible with --db-engine $ENABLED_DB_ENGINE\n"
+                printf "Suggestion: Use --db-engine mariadb or remove --db-engine (auto-detected)\n\n"
+                exit 1
+            fi
+            ;;
+    esac
 fi
 
 if [ "$LIST_INSTANCES" != "no" ]; then
@@ -494,6 +569,9 @@ else
             for file in "${COMPOSE_FILES[@]}"; do
                 COMPOSE_OPTIONS+=" -f $file"
             done
+
+            # Add database engine compose file
+            COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/db-${ENABLED_DB_ENGINE}.yml"
 
             if [ "$ENABLED_SEARCHENGINE" != "" ] && [ "$ENABLED_SEARCHENGINE" != "zebra" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/${SEARCH_ENGINE_TYPE}.yml"

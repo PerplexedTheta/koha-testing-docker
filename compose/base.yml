@@ -1,14 +1,4 @@
 services:
-    db:
-        image: ${DB_IMAGE:-mariadb:10.5}
-        restart: always
-        environment:
-            MYSQL_ROOT_PASSWORD: password
-            MYSQL_DATABASE: koha_kohadev
-            MYSQL_USER: koha_kohadev
-            MYSQL_PASSWORD: password
-        networks:
-            - kohanet
     koha:
         image: koha/koha-testing:${KOHA_IMAGE}
         depends_on:
