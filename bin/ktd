@@ -39,11 +39,6 @@ Usage:
 
 Options:
 
-    --es6                 DEPRECATED: Use --search-engine es6
-    --es7                 DEPRECATED: Use --search-engine es7
-    --es8                 DEPRECATED: Use --search-engine es8
-    --os1                 DEPRECATED: Use --search-engine os1
-    --os2                 DEPRECATED: Use --search-engine os2
     --search-engine ENGINE Use specified search engine (use 'list' to see options)
     --db-engine ENGINE     Use specified database engine (mariadb, mysql) - auto-detected from DB_IMAGE if not specified
     --plugins             Enable plugin development environment
@@ -71,8 +66,6 @@ Environment variables:
     KTD_PROJECT           Optional. For using with the compose -p option (default: 'koha')
     DB_IMAGE              Optional. Override database image (e.g., mariadb:11.0, mysql:8.4)
     KOHA_SEARCH_ENGINE_IMAGE Optional. Override search engine image
-
-Note: --es6, --es7, --es8, --os1 and --os2 are mutually exclussive.
 
 EOF
 }
