@@ -534,6 +534,12 @@ if [ "$WAIT_READY" != "no" ]; then
     fi
 
     for i in $(seq 1 $WAIT_TIMEOUT); do
+        # Check if container is still running
+        if ! docker ps -q -f name=${PROJECT_NAME}-koha-1 | grep -q .; then
+            printf "\nERROR: Container ${PROJECT_NAME}-koha-1 has stopped or died\n"
+            exit 1
+        fi
+
         if docker exec ${PROJECT_NAME}-koha-1 bash -c '[ -e /ktd_ready ]'; then
             printf "\n"
             exit 0
