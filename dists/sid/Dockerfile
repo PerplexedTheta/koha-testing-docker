@@ -133,8 +133,8 @@ RUN yarn global add gulp-cli
 
 # Embed /kohadevbox/node_modules
 RUN cd /kohadevbox \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/package.json?inline=false -O package.json \
-    && wget -q https://gitlab.com/koha-community/Koha/-/raw/main/yarn.lock?inline=false -O yarn.lock \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.11.x/package.json?inline=false -O package.json \
+    && wget -q https://gitlab.com/koha-community/Koha/-/raw/24.11.x/yarn.lock?inline=false -O yarn.lock \
     && yarn install --modules-folder /kohadevbox/node_modules \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
