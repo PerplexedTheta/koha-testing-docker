@@ -73,14 +73,14 @@ EOF
 # Add handle_down_command function here, before it's used
 handle_down_command() {
     local instance=$1
-    
+
     if [ "$instance" = "--all" ]; then
         # Get all instance names and bring them down
         docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | sort -u | \
         while read project; do
             if [ -n "$project" ]; then
                 echo "Bringing down project: $project"
-                "$DOCKER_BINARY" compose -p "$project" down
+                "$DOCKER_BINARY" compose --project-directory ${KTD_HOME} -p "$project" down
                 echo
             fi
         done
@@ -89,7 +89,7 @@ handle_down_command() {
         if docker ps -a --format '{{.Names}}' | grep -q "${instance}-koha-1"; then
             echo "Bringing down project: $instance"
             container_count=$(docker ps -a --format '{{.Names}}' | grep "^${instance}-" | wc -l)
-            "$DOCKER_BINARY" compose -p "$instance" down
+            "$DOCKER_BINARY" compose --project-directory ${KTD_HOME} -p "$instance" down
         else
             echo "Error: Instance '$instance' not found"
             exit 1
@@ -98,7 +98,7 @@ handle_down_command() {
         # Default behavior - bring down current instance
         echo "Bringing down project: ${PROJECT_NAME}"
         container_count=$(docker ps -a --format '{{.Names}}' | grep "^${PROJECT_NAME}-" | wc -l)
-        "$DOCKER_BINARY" compose -p ${PROJECT_NAME} down
+        "$DOCKER_BINARY" compose --project-directory ${KTD_HOME} -p ${PROJECT_NAME} down
     fi
 }
 
@@ -670,9 +670,9 @@ else
             export KOHA_INSTANCE=${PROJECT_NAME}
 
             if [ "$1" = "down" ]; then
-                "$DOCKER_BINARY" compose -p ${PROJECT_NAME} down
+                "$DOCKER_BINARY" compose --project-directory ${KTD_HOME} -p ${PROJECT_NAME} down
             else
-                "$DOCKER_BINARY" compose ${COMPOSE_OPTIONS} $@
+                "$DOCKER_BINARY" compose --project-directory ${KTD_HOME} ${COMPOSE_OPTIONS} $@
             fi
 
             # back to the original working directory

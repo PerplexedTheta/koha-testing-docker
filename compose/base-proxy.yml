@@ -12,7 +12,7 @@ services:
             - /cover_db
             - /tmp
         env_file:
-            - ../.env
+            - .env
         environment:
             COVERAGE: ${COVERAGE:-}
             CPAN: ${CPAN:-no}
