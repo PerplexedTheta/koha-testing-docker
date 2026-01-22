@@ -115,6 +115,11 @@ say colored( "Success, pre-commit checks passed", 'green' );
 
 exit 0;
 
+sub guess_container_name {
+    my @names = map { chomp; $_ } qx{docker ps --format '{{.Names}}'|grep '\\-koha-1'};
+    return $names[0];
+}
+
 sub intersect{
     my ( $a, $b ) = @_;
     my %e = map { $_ => undef } @$a;
@@ -128,7 +133,8 @@ sub build_cmd {
 
     $cmd =~ s|"|\\"|g;
     $cmd =~ s|\$|\\\$|g;
-    return sprintf q{docker exec --user kohadev-koha -w /kohadevbox/koha kohadev-koha-1 /bin/bash -c "source ~/.bashrc; %s"}, $cmd;
+    my $container_name = guess_container_name();
+    return sprintf q{docker exec --user kohadev-koha -w /kohadevbox/koha %s /bin/bash -c "source ~/.bashrc; %s"}, $container_name, $cmd;
 }
 sub perl_valid_cmd {
     my ($filepath) = @_;
