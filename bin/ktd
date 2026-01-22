@@ -29,9 +29,9 @@ This script lets you manage your KTD environment.
 
 Usage:
 
-    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] up -d
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--mana|--mana-url|--marcflavour <flavour>] up -d
     $scriptname down [instance_name|--all]
-    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--marcflavour <flavour>] pull
+    $scriptname [--search-engine <engine>|--plugins|--selenium|--sso|--localrun|--mana|--mana-url|--marcflavour <flavour>] pull
     $scriptname [--root] --shell
     $scriptname --dbshell
     $scriptname --logs
@@ -44,6 +44,8 @@ Options:
     --plugins             Enable plugin development environment
     --single-plugin PATH  Mount a single plugin from PATH to /kohadevbox/plugins/
     --selenium            Use a Selenium container
+    --mana                Connects koha to the mana network
+    --mana-url 'url'      Sets the mana-url
     --sso                 Use a Keycloak container
     --shell               Get into the Koha container
     --dbshell             Get into the database
@@ -152,7 +154,7 @@ set_searchengine()
         # Multi-arch images don't need arch suffix anymore
         export SEARCH_ENGINE_IMAGE="${SEARCH_ENGINE_IMAGE}"
         export SEARCH_ENGINE_TYPE=$SEARCH_ENGINE_TYPE
-        
+
         # Keep ES_IMAGE for backward compatibility
         export ES_IMAGE="${SEARCH_ENGINE_IMAGE}"
         export ES_IMAGE_TYPE=$SEARCH_ENGINE_TYPE
@@ -209,6 +211,7 @@ ENABLED_DB_ENGINE=""
 ENABLE_PLUGINS="no"
 SINGLE_PLUGIN_PATH=""
 ENABLE_SELENIUM="no"
+ENABLE_MANA="no"
 ENABLE_SSO="no"
 ENABLE_LOCAL_RUN_SCRIPT="no"
 ENABLE_BUILD_IMAGE="no"
@@ -340,6 +343,13 @@ while [ $# -gt 0 ]; do
         --selenium)
             ENABLE_SELENIUM="yes"
             shift ;;
+        --mana)
+            ENABLE_MANA="yes"
+            shift ;;
+        --mana-url)
+            SET_MANA_URL="yes"
+            mana_url_to_be_set=$2
+            shift 2;;
         --sso)
             ENABLE_SSO="yes"
             shift ;;
@@ -504,11 +514,11 @@ if [ "$LIST_INSTANCES" != "no" ]; then
 
     # Get max length for formatting
     max_len=$(docker ps -a --format '{{.Names}}' | grep 'koha-1' | sed 's/-koha-1//' | awk '{ print length }' | sort -nr | head -1)
-    
+
     # Print header
     printf "%-${max_len}s  %s\n" "INSTANCE" "STATUS"
     printf "%-${max_len}s  %s\n" "$(printf '%0.s-' $(seq 1 $max_len))" "---------------"
-    
+
     # Display running instances first, then stopped ones
     (
         display_instances "running" "${GREEN}" ""
@@ -623,6 +633,16 @@ else
 
             if [ "$ENABLE_SELENIUM" != "no" ]; then
                 COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/selenium.yml"
+            fi
+
+	        if [ "$ENABLE_MANA" != "no" ]; then
+                MANA_URL="http://mana:5000"
+                export MANA_URL
+                COMPOSE_OPTIONS="${COMPOSE_OPTIONS} -f compose/mana.yml"
+            fi
+
+            if [ "$SET_MANA_URL" != "no" ]; then
+                export MANA_URL="${mana_url_to_be_set}"
             fi
 
             if [ "$ENABLE_SSO" != "no" ]; then

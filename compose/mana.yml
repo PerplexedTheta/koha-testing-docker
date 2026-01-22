@@ -1,0 +1,10 @@
+services:
+    koha:
+      environment:
+        MANA_URL: "http://mana:5000"
+      networks:
+          - mana
+
+networks:
+    mana:
+        external: true

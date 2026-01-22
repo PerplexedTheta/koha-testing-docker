@@ -180,6 +180,7 @@ In order to launch _KTD_, you can use the `ktd` wrapper command. It is a wrapper
   ```shell
   ktd --es7 up
   ktd --selenium --os1 --plugins --sso up
+  ktd --mana up
   ```
 
 Note: the `pull` command would also work if you add several option switches. So running:
@@ -443,6 +444,17 @@ DEV_INSTALL=1 KOHA_HOME=/kohadevbox/koha \
 Using `-R /kohadevbox/koha` makes `plackup` watch everything in `/kohadevbox/koha` and will restart Plack on changes to any file in that directory. Depending on what you are doing, it make more sense to use eg `-R /kohadevbox/koha/Koha -R /kohadevbox/koha/C4`.
 
 You can also add `DEV_INSTALL` and `KOHA_HOME` to your `.env` file so you don't have to specify them here.
+
+### Using ktd to test and developp Mana
+
+You have to have a mana instance running first, using the mana up command from the mana repo
+
+Next, you can run
+```sh
+ktd --mana up
+```
+
+This will allow koha to connect to the network created by mana, and mana will be usable right away.
 
 ## Translation files
 
