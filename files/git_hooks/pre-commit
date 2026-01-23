@@ -117,6 +117,8 @@ exit 0;
 
 sub guess_container_name {
     my @names = map { chomp; $_ } qx{docker ps --format '{{.Names}}'|grep '\\-koha-1'};
+    my $default = 'kohadev-koha-1';
+    return $default if grep {$_ eq $default} @names;
     return $names[0];
 }
 
