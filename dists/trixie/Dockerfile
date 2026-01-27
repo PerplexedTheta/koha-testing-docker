@@ -76,12 +76,12 @@ RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
     | tee /usr/share/keyrings/nodesource.gpg >/dev/null \
     && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 
-# Add yarn repo
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-    && wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
+# Add Yarn repo
+RUN curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg \
     | gpg --dearmor \
-    | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+    | tee /usr/share/keyrings/yarn.gpg > /dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian stable main" \
+    > /etc/apt/sources.list.d/yarn.list
 
 # Install Node.js and Yarn
 RUN /usr/local/bin/install-packages nodejs
