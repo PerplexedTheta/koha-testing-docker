@@ -80,7 +80,7 @@ RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
 RUN curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg \
     | gpg --dearmor \
     | tee /usr/share/keyrings/yarn.gpg > /dev/null \
-    && echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian stable main" \
+    && echo "deb [trusted=yes] https://dl.yarnpkg.com/debian stable main" \
     > /etc/apt/sources.list.d/yarn.list
 
 # Install Node.js and Yarn
