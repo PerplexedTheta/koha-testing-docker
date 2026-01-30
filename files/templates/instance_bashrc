@@ -1,4 +1,4 @@
-export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadevbox/node_modules/.bin/
+export PATH=${PATH}:/kohadevbox/bin:/kohadevbox/koha/node_modules/.bin/:/kohadevbox/node_modules/.bin/:${HOME}/.local/bin
 
 alias prove_debug='PERL5LIB="/kohadevbox/dbgp":$PERL5LIB \
                    PERL5DB="BEGIN { require q(/kohadevbox/dbgp/perl5db.pl) }" \
