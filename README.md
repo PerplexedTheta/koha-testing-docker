@@ -447,7 +447,7 @@ You can also add `DEV_INSTALL` and `KOHA_HOME` to your `.env` file so you don't 
 
 ### Using ktd to test and developp Mana
 
-You have to have a mana instance running first, using the mana up command from the mana repo
+You have to have a mana instance running first, using the `mana up` command (you may have to run it twice) from [the mana repo](https://gitlab.com/koha-community/koha-mana).
 
 Next, you can run
 ```sh
