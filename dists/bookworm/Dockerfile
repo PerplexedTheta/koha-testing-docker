@@ -6,42 +6,42 @@ LABEL maintainer="tomascohen@theke.io"
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV REFRESHED_AT 2024-06-12
+ENV REFRESHED_AT 2026-02-04
 
 # Install apache2 and testting deps
 # netcat: used for checking the DB is up
 RUN apt-get -y update \
     && apt-get -y upgrade \
     && apt-get -y install \
-      apache2 \
-      build-essential \
-      codespell \
-      cpanminus \
-      git \
-      tig \
-      libcarp-always-perl \
-      libgit-repository-perl \
-      libmemcached-tools \
-      libmodule-install-perl \
-      libperl-critic-perl \
-      libtest-differences-perl \
-      libtest-perl-critic-perl \
-      libtest-perl-critic-progressive-perl \
-      libfile-chdir-perl \
-      libdata-printer-perl \
-      pmtools \
-      locales \
-      netcat-openbsd \
-      python3-gdbm \
-      vim \
-      tmux \
-      wget \
-      curl \
-      apt-transport-https \
-      mlocate \
-      iproute2 \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/apt/lists/*
+    apache2 \
+    build-essential \
+    codespell \
+    cpanminus \
+    git \
+    tig \
+    libcarp-always-perl \
+    libgit-repository-perl \
+    libmemcached-tools \
+    libmodule-install-perl \
+    libperl-critic-perl \
+    libtest-differences-perl \
+    libtest-perl-critic-perl \
+    libtest-perl-critic-progressive-perl \
+    libfile-chdir-perl \
+    libdata-printer-perl \
+    pmtools \
+    locales \
+    netcat-openbsd \
+    python3-gdbm \
+    vim \
+    tmux \
+    wget \
+    curl \
+    apt-transport-https \
+    mlocate \
+    iproute2 \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set locales
 RUN    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
@@ -59,72 +59,72 @@ ENV LC_CTYPE en_US.UTF-8
 RUN a2dismod mpm_event
 RUN a2dissite 000-default
 RUN a2enmod rewrite \
-            headers \
-            proxy_http \
-            cgi
+    headers \
+    proxy_http \
+    cgi
 
 # Add Koha development repositories
 RUN echo "deb http://debian.koha-community.org/koha-staging dev main" >> /etc/apt/sources.list.d/koha.list
 RUN curl -s http://debian.koha-community.org/koha/gpg.asc  | \
-        gpg --no-default-keyring \
-         --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
+    gpg --no-default-keyring \
+    --keyring gnupg-ring:/etc/apt/trusted.gpg.d/koha.gpg --import \
     && chmod 644 /etc/apt/trusted.gpg.d/koha.gpg
 
 # Install koha-common
 RUN apt-get -y update \
-   && apt-cache policy koha-common \
-   && apt-cache policy libmojolicious-perl \
-   && apt-cache policy libjson-validator-perl \
-   && apt-cache policy libmojolicious-plugin-openapi-perl \
-   && apt-cache policy libyaml-libyaml-perl \
-   && apt-get -y install \
-         koha-common \
-   && /etc/init.d/koha-common stop \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/* \
-   && rm -rf /usr/share/koha/misc/translator/po/* # Do not embed PO files
+    && apt-cache policy koha-common \
+    && apt-cache policy libmojolicious-perl \
+    && apt-cache policy libjson-validator-perl \
+    && apt-cache policy libmojolicious-plugin-openapi-perl \
+    && apt-cache policy libyaml-libyaml-perl \
+    && apt-get -y install \
+    koha-common \
+    && /etc/init.d/koha-common stop \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/api/lists/* \
+    && rm -rf /usr/share/koha/misc/translator/po/* # Do not embed PO files
 
 RUN mkdir /kohadevbox
 WORKDIR /kohadevbox
 
 # Install testing extras, packages and cpan
 RUN apt-get -y update \
-   && apt-get -y install \
-         perltidy \
-         libexpat1-dev \
-         libtemplate-plugin-gettext-perl \
-         libdevel-cover-perl \
-\
-         libmoosex-attribute-env-perl \
-         libtest-dbix-class-perl \
-         libtap-harness-junit-perl \
-         libtext-csv-unicode-perl \
-         libdevel-cover-report-clover-perl \
-         libwebservice-ils-perl \
-         libselenium-remote-driver-perl \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+    && apt-get -y install \
+    perltidy \
+    libexpat1-dev \
+    libtemplate-plugin-gettext-perl \
+    libdevel-cover-perl \
+    \
+    libmoosex-attribute-env-perl \
+    libtest-dbix-class-perl \
+    libtap-harness-junit-perl \
+    libtext-csv-unicode-perl \
+    libdevel-cover-report-clover-perl \
+    libwebservice-ils-perl \
+    libselenium-remote-driver-perl \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/api/lists/*
 
 # Add nodejs repo
 RUN wget -O- -q https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-      | gpg --dearmor \
-      | tee /usr/share/keyrings/nodesource.gpg >/dev/null \
-   && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/nodesource.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 
 # Add yarn repo
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
-   && wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
-      | gpg --dearmor \
-      | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
-   && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+    && wget -O- -q https://dl.yarnpkg.com/debian/pubkey.gpg \
+    | gpg --dearmor \
+    | tee /usr/share/keyrings/yarnkey.gpg >/dev/null \
+    && echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
 
 # Install Node.js and Yarn
 RUN apt-get update \
-   && apt-cache policy nodejs \
-   && apt-cache policy yarn \
-   && apt-get -y install nodejs yarn \
-   && rm -rf /var/cache/apt/archives/* \
-   && rm -rf /var/lib/api/lists/*
+    && apt-cache policy nodejs \
+    && apt-cache policy yarn \
+    && apt-get -y install nodejs yarn \
+    && rm -rf /var/cache/apt/archives/* \
+    && rm -rf /var/lib/api/lists/*
 
 # Install some tool
 RUN yarn global add gulp-cli
@@ -153,24 +153,24 @@ RUN cd /kohadevbox \
     && git clone https://gitlab.com/koha-community/koha-howto.git howto \
     && apt-get update \
     && apt-get -y install \
-        bugz \
+    bugz \
     && rm -rf /var/cache/apt/archives/* \
     && rm -rf /var/lib/api/lists/*
 
 # cypress tests
 RUN apt-get update \
     && apt-get -y install \
-        libgtk2.0-0\
-        libgtk-3-0\
-        libgbm-dev\
-        libnotify-dev\
-        libgconf-2-4\
-        libnss3\
-        libxss1\
-        libasound2\
-        libxtst6\
-        xauth\
-        xvfb \
+    libgtk2.0-0\
+    libgtk-3-0\
+    libgbm-dev\
+    libnotify-dev\
+    libgconf-2-4\
+    libnss3\
+    libxss1\
+    libasound2\
+    libxtst6\
+    xauth\
+    xvfb \
     && rm -rf /var/cache/apt/archives/* \
     && rm -rf /var/lib/api/lists/*
 
