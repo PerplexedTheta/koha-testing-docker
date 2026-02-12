@@ -416,6 +416,10 @@ if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
 
         perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-selenium-tests-only
 
+    elif [ "$TEST_SUITE" = "all-perl-tests" ]; then # all perl tests only
+
+        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-all-perl-tests
+
     elif [ "$TEST_SUITE" = "db-compare-only" ]; then # update the DB, dbic, DB structure
 
         if [ -z ${DB_COMPARE_WITH} ]; then
