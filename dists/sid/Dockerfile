@@ -98,15 +98,11 @@ RUN cd /kohadevbox \
     && mv /root/.cache/Cypress /kohadevbox && chown -R 1000 /kohadevbox/Cypress \
     && rm -f package.json yarn.lock
 
-# Add git-bz
-RUN cd /usr/local/share \
-    && git clone --depth 1 --branch apply_on_cascade https://gitlab.com/koha-community/git-bz git-bz \
-    && ln -s /usr/local/share/git-bz/git-bz /usr/bin/git-bz
-
 # Add perl-git-bz
 RUN cd /kohadevbox \
     && git clone --depth 1 https://gitlab.com/koha-community/perl-git-bz.git \
-    && cd perl-git-bz && cpanm --installdeps .
+    && cd perl-git-bz && cpanm --installdeps . \
+    && ln -s /kohadevbox/perl-git-bz/bin/git-bz /usr/bin/git-bz
 
 # Clone helper repositories
 RUN cd /kohadevbox \
