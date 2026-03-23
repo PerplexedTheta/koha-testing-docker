@@ -12,7 +12,7 @@ services:
       - "--accesslog=true"
       - "--log=true"
     ports:
-      - "80:80"
+      - "${KTD_PROXY_PORT:-80}:80"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:

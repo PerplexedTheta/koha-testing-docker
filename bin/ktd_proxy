@@ -37,6 +37,7 @@ Options:
     --stop                Yeah
     --status              Prints the proxy status
     --pull                Pull the latest proxy images
+    --port                Set the host port for the proxy (default: 80)
     --help|-h             Display this help message
 
 EOF
@@ -96,16 +97,19 @@ while [ $# -gt 0 ]; do
             usage ; exit 0 ;;
         --start)
             OP="start"
-            break ;;
+            shift ;;
         --status)
             OP="status"
-            break ;;
+            shift ;;
         --stop)
             OP="stop"
-            break ;;
+            shift ;;
         --pull)
             OP="pull"
-            break ;;
+            shift ;;
+        --port)
+            export KTD_PROXY_PORT="$2"
+            shift 2 ;;
         -*)
             printf "\nError: invalid parameter passed '$1'\n\n"
             usage
