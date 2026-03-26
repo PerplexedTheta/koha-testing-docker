@@ -290,6 +290,32 @@ DB_IMAGE=mysql:8.0 ktd --proxy --name mysql8 up -d
 We highly recommend the use of [git worktrees](https://git-scm.com/docs/git-worktree) for having different
 codebases on your hard drive without filling it up quickly.
 
+### Custom File Sourcing and Commands at run time
+
+With the ` --localrun` flag, you can add custom file sources into your runfile so each instance of your shell has any custom alias or other files sourced. 
+
+On your computer under the `koha-testing-docker/files` folder, open `run.sh`
+
+Before `touch /ktd_ready` you can add commands. 
+Examples:
+```bash
+echo 'source /kohadevbox/koha/shared/.custom_bash_commands.sh' >> /var/lib/koha/kohadev/.bashrc
+echo 'newktd' >> /var/lib/koha/kohadev/.bashrc
+```
+
+The above options add the lines to the kohadev user `.bashrc` file and will run the custom command `newktd` which is defined in `/kohadevbox/koha/shared/.custom_bash_commands.sh`
+
+In the example above, the `newktd` function runs the following commands:
+
+```bash
+    eval "$(ssh-agent -s)" #turn on ssh
+    ssh-add /kohadevbox/koha/shared/gitssh_id #add your ssh
+    source /kohadevbox/koha/shared/.bash_aliases #source your aliases
+    sudo /etc/cron.daily/plocate #build the database for use with the locate command
+    source /kohadevbox/koha/shared/.git-completion.bash #source a custom completion file for use with some custom functions
+    source /kohadevbox/koha/shared/.bashrc #source the custom bashrc, which allows for keeping a shared history between instances
+```
+Examples of the files used can be found in [this repository](https://github.com/lisettebws/shared).
 ## Available commands and aliases
 
 The container comes with some helpful aliases to improve productivity, many of which are available 
