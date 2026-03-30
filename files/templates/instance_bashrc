@@ -47,6 +47,8 @@ export KOHA_OPAC_URL=http://koha:8080
 export PERL5LIB="${KOHA_SOURCE_DIR}:${KOHA_SOURCE_DIR}/lib:/kohadevbox/qa-test-tools"
 export SELENIUM_ADDR=${SELENIUM_ADDR}
 export SELENIUM_PORT=${SELENIUM_PORT}
+# HTTP
+export USE_MOJO=${USE_MOJO}
 # Database
 export DB_HOSTNAME=${DB_HOSTNAME}
 export DB_USER=${DB_USER}
@@ -58,6 +60,8 @@ PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[00m\]$(__git_ps1 "
 # function for restarting all needed services
 function restart_all(){
     flush_memcached
+    [ "${USE_MOJO}" = "no" ] && sudo service apache2 restart
+    [ ! "${USE_MOJO}" = "no" ] && sudo koha-mojo --restart kohadev
     sudo service apache2 restart
     chown -R ${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha /var/log/koha/${KOHA_INSTANCE};
     sudo service koha-common restart

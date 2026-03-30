@@ -333,8 +333,11 @@ perl ${BUILD_DIR}/misc4dev/do_all_you_can_do.pl \
             --intranet-base-url ${KOHA_INTRANET_URL} \
             --gitify_dir        ${BUILD_DIR}/gitify
 
-# Stop apache2
+## Copy koha-mojo sysv file from misc4dev
+perl ${BUILD_DIR}/misc4dev/setup_mojo.pl
+
 service apache2 stop
+koha-mojo --stop kohadev || true
 
 echo "[logs] Chowning logs"
 chown -R "${KOHA_INSTANCE}-koha:${KOHA_INSTANCE}-koha" "/var/log/koha/${KOHA_INSTANCE}" \
@@ -373,12 +376,19 @@ if [ "${ENABLE_PLUGINS}" = "yes" ]; then
 fi
 
 # Enable and start koha-plack and koha-z3950-responder
-koha-plack           --enable ${KOHA_INSTANCE}
+if [ "${USE_MOJO}" = "no" ]; then
+    koha-plack --enable ${KOHA_INSTANCE}
+fi
 koha-z3950-responder --enable ${KOHA_INSTANCE}
 service koha-common start
 
 # Start apache and rabbitmq-server
-service apache2 start
+if [ "${USE_MOJO}" = "no" ]; then
+    service apache2 start
+else
+    koha-plack --stop kohadev || true
+    koha-mojo --start kohadev
+fi
 service rabbitmq-server start || true # Don't crash if rabbitmq-server didn't start
 
 touch /ktd_ready
