@@ -386,8 +386,12 @@ echo "koha-testing-docker has started up and is ready to be enjoyed!"
 
 # if KOHA_PROVE_CPUS is not set, then use nproc
 if [ -z ${KOHA_PROVE_CPUS} ]; then
-    KOHA_PROVE_CPUS=`nproc`
+    KOHA_PROVE_CPUS=$(( `nproc` - 1 ))
 fi
+if [ ${KOHA_PROVE_CPUS} -eq 0 ]; then
+    KOHA_PROVE_CPUS=1
+fi
+export KOHA_PROVE_CPUS
 
 if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
 
