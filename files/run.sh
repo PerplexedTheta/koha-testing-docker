@@ -384,68 +384,6 @@ service rabbitmq-server start || true # Don't crash if rabbitmq-server didn't st
 touch /ktd_ready
 echo "koha-testing-docker has started up and is ready to be enjoyed!"
 
-# if KOHA_PROVE_CPUS is not set, then use nproc
-if [ -z ${KOHA_PROVE_CPUS} ]; then
-    KOHA_PROVE_CPUS=`nproc`
-fi
-
-if [ "$RUN_TESTS_AND_EXIT" = "yes" ]; then
-
-    export KOHA_TESTING=1
-
-    if [ "${TEST_DB_UPGRADE}" = "yes" ]; then
-
-        # Note that --run-all-tests includes this
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-db-upgrade-only
-
-    fi
-
-    if [ ${COVERAGE} ]; then
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-all-tests --with-coverage
-
-    elif [ "$TEST_SUITE" = "light" ]; then
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-light-test-suite
-
-    elif [ "$TEST_SUITE" = "es-only" ]; then # test elastic-search only
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-elastic-tests-only
-
-    elif [ "$TEST_SUITE" = "selenium-only" ]; then # selenium tests only
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-selenium-tests-only
-
-    elif [ "$TEST_SUITE" = "all-perl-tests" ]; then # all perl tests only
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-all-perl-tests
-
-    elif [ "$TEST_SUITE" = "db-compare-only" ]; then # update the DB, dbic, DB structure
-
-        if [ -z ${DB_COMPARE_WITH} ]; then
-            echo "ERROR: \$TEST_SUITE=db-compare-only requires \$DB_COMPARE_WITH set"
-            exit 2
-        fi
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-db-compare-only --compare-with "${DB_COMPARE_WITH}"
-
-    elif [ "$TEST_SUITE" = "specific-tests" ]; then # run specific tests
-
-        if [ -z ${TESTS_TO_RUN} ]; then
-            echo "ERROR: \$TEST_SUITE=specific-tests requires \$TESTS_TO_RUN set"
-            exit 2
-        fi
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-only "${TESTS_TO_RUN}"
-
-    else
-
-        perl ${BUILD_DIR}/misc4dev/run_tests.pl --koha-dir=${BUILD_DIR}/koha --run-all-tests
-
-    fi
-
-else
-
 # start koha-reload-starman, if we have inotify installed
 #    if [ -f "/usr/bin/inotifywait" ]; then
 #        daemon  --verbose=1 \
@@ -455,6 +393,5 @@ else
 #            --pidfiles=/var/run/koha/kohadev/ -- /kohadevbox/koha-reload-starman
 #    fi
 
-    # TODO: We could use supervise as the main loop
-    /bin/bash -c "trap : TERM INT; sleep infinity & wait"
-fi
+# TODO: We could use supervise as the main loop
+/bin/bash -c "trap : TERM INT; sleep infinity & wait"

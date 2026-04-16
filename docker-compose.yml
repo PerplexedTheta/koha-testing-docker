@@ -41,12 +41,7 @@ services:
         environment:
             COVERAGE: ${COVERAGE}
             CPAN: ${CPAN:-no}
-            RUN_TESTS_AND_EXIT: ${RUN_TESTS_AND_EXIT}
             LOCAL_USER_ID: ${LOCAL_USER_ID}
-            TEST_SUITE: ${TEST_SUITE:-full}
-            TESTS_TO_RUN: ${TESTS_TO_RUN:-}
-            TEST_DB_UPGRADE: ${TEST_DB_UPGRADE:-no}
-            DB_COMPARE_WITH: ${DB_COMPARE_WITH:-}
             KOHA_CI_INCREMENTAL_RUN_REPO_URL: ${KOHA_CI_INCREMENTAL_RUN_REPO_URL:-}
             KOHA_CI_INCREMENTAL_RUNS: ${KOHA_CI_INCREMENTAL_RUNS:-}
             KOHA_CI_INCREMENTAL_RUNS_REPORT: ${KOHA_CI_INCREMENTAL_RUNS_REPORT:-}
