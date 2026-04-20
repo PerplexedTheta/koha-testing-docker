@@ -23,8 +23,8 @@ before_script:
   stage: build
   tags: [saas-linux-medium-amd64]
   script:
-    - docker build --platform linux/amd64 
-      --tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64
+    - docker build --platform linux/amd64
+      --tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-amd64
       --file dists/${CI_JOB_NAME}/Dockerfile
       --push .
   only:
@@ -36,7 +36,7 @@ before_script:
   tags: [saas-linux-medium-arm64]
   script:
     - docker build --platform linux/arm64/v8
-      --tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64
+      --tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-arm64
       --file dists/${CI_JOB_NAME}/Dockerfile
       --push .
   only:
@@ -50,12 +50,12 @@ before_script:
     - docker:dind
   script:
     # Pull from GitLab
-    - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64
-    - docker pull $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64
-    
-    # Retag for Docker Hub  
-    - docker tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-amd64 koha/koha-testing:temp-${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
-    - docker tag $CI_REGISTRY_IMAGE:${CI_JOB_NAME}-arm64 koha/koha-testing:temp-${CI_JOB_NAME}-arm64-${CI_PIPELINE_ID}
+    - docker pull $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-amd64
+    - docker pull $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-arm64
+
+    # Retag for Docker Hub
+    - docker tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-amd64 koha/koha-testing:temp-${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
+    - docker tag $CI_REGISTRY_IMAGE:${CI_COMMIT_REF_NAME}-${CI_JOB_NAME}-arm64 koha/koha-testing:temp-${CI_JOB_NAME}-arm64-${CI_PIPELINE_ID}
     
     # Push to Docker Hub
     - docker push koha/koha-testing:temp-${CI_JOB_NAME}-amd64-${CI_PIPELINE_ID}
