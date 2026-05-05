@@ -581,7 +581,7 @@ if [ "$SHELL_ACCESS" != "no" ]; then
     fi
 
     if [ "$RUN" != "" ]; then
-        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha ${PROJECT_NAME}-koha-1 bash -c "${RUN}"
+        "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha ${PROJECT_NAME}-koha-1 bash -c "source ~/.bashrc && ${RUN}"
     else
         "$DOCKER_BINARY" exec ${SHELL_USER} --workdir /kohadevbox/koha -ti ${PROJECT_NAME}-koha-1 bash
     fi
